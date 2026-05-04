@@ -1,0 +1,54 @@
+# robots.txt for rflabs.in
+# Updated: 2026-05-04
+
+# Allow all standard crawlers
+User-agent: *
+Allow: /
+Disallow: /private/
+Disallow: /admin/
+
+# Google
+User-agent: Googlebot
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+# ── AI / LLM crawlers — explicitly allowed ──
+
+# OpenAI (ChatGPT, SearchGPT)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Anthropic (Claude)
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Common Crawl (used for LLM training datasets)
+User-agent: CCBot
+Allow: /
+
+# Meta AI
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# Apple
+User-agent: Applebot
+Allow: /
+
+# Sitemap location
+Sitemap: https://rflabs.in/sitemap.xml
+
+# llms.txt location (AI discovery file)
+# https://rflabs.in/llms.txt

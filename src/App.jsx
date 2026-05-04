@@ -998,17 +998,17 @@ function Footer({ navigate }) {
               <br />
               <br />
               <a
-                href="tel:+919994094973"
+                href="tel:+917259533331"
                 style={{ color: "white", textDecoration: "none" }}
               >
-                +91 99940 94973
+                +91 72595 33331
               </a>
               <br />
               <a
-                href="mailto:Giridhar@rflabs.in"
+                href="mailto:info@rflabs.in"
                 style={{ color: "white", textDecoration: "none" }}
               >
-                Giridhar@rflabs.in
+                info@rflabs.in
               </a>
             </div>
           </div>
@@ -3891,7 +3891,7 @@ function ContactPage() {
         <div className="container">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }} className="contact-grid">
             <a
-              href="tel:+919994094973"
+              href="tel:+917259533331"
               className="tap-card card-lift"
               style={{
                 padding: 44,
@@ -3905,7 +3905,7 @@ function ContactPage() {
               <Phone size={32} style={{ color: "var(--navy)", marginBottom: 22 }} />
               <div className="mono" style={{ color: "var(--navy)", marginBottom: 12 }}>CALL US DIRECTLY</div>
               <h3 className="display" style={{ fontSize: 32, color: "var(--navy)", marginBottom: 12, fontWeight: 700, marginTop: 0 }}>
-                +91 99940 94973
+                +91 72595 33331
               </h3>
               <p style={{ color: "var(--ink-2)", margin: 0 }}>
                 Direct line to the founder. Available 9am – 7pm IST, Monday through Saturday.
@@ -3913,7 +3913,7 @@ function ContactPage() {
             </a>
 
             <a
-              href="mailto:Giridhar@rflabs.in"
+              href="mailto:info@rflabs.in"
               className="tap-card card-lift"
               style={{
                 padding: 44,
@@ -3927,7 +3927,7 @@ function ContactPage() {
               <Mail size={32} style={{ color: "var(--mint)", marginBottom: 22 }} />
               <div className="mono" style={{ color: "var(--mint)", marginBottom: 12 }}>WRITE TO US</div>
               <h3 className="display" style={{ fontSize: 28, color: "white", marginBottom: 12, fontWeight: 700, marginTop: 0 }}>
-                Giridhar@rflabs.in
+                info@rflabs.in
               </h3>
               <p style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}>
                 Drop us a note. Include your context and we&apos;ll come back within one business day.
