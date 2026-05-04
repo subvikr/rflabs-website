@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Netlify build artifacts
+.netlify/edge-functions-dist/
+.netlify/edge-functions-import-map.json
+.netlify/edge-functions/
+.netlify/functions/
+.netlify/plugins/
+deno.lock
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
