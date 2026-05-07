@@ -1817,14 +1817,14 @@ function AboutPage({ navigate }) {
         bgImage={IMAGES.meetingRoom}
         title={
           <>
-            We don&apos;t consult.
+            We don&apos;t just build.
             <br />
             <strong style={{ color: "var(--mint)", fontWeight: 700 }}>
-              We commit.
+              We solve.
             </strong>
           </>
         }
-        subtitle="Founded in March 2020 in Coimbatore, RFLABS began as an official Zebra Technologies IoT distributor. Five years on, we operate as a sogo shosha — a diversified trading and investment house — with two flagship verticals and a growing portfolio of acquired and white-labeled products."
+        subtitle="Born from a team of seasoned engineers from Dalhousie University, Canada, with deep expertise in Information Technology, Security, and the Intelligence community, RFLABS.in was founded in March 2020 in Coimbatore — with a single conviction: that world-class technology solutions should be accessible, affordable, and uncompromising in quality, security, and data integrity."
       />
 
       <section style={{ padding: "120px 0", background: "white" }}>
@@ -1836,35 +1836,40 @@ function AboutPage({ navigate }) {
                 className="display"
                 style={{ fontSize: "clamp(30px, 4vw, 48px)", color: "var(--navy)", fontWeight: 700 }}
               >
-                From a single distribution license to a multi-vertical trading house.
+                From a single distribution license to a multi-vertical solutions house.
               </h2>
             </div>
             <div style={{ fontSize: 16.5, color: "var(--ink-2)", lineHeight: 1.85 }}>
               <p>
-                RFLABS was founded in March 2020 with a clear focus: bring
-                world-class IoT hardware to Indian manufacturers and warehouses,
-                starting with our partnership with Zebra Technologies.
+                RFLABS.in was founded in March 2020 with a clear focus: bring
+                world-class IoT hardware and RFID technology to Indian
+                manufacturers and enterprises, starting with our official
+                partnership with Zebra Technologies.
               </p>
               <p>
                 What we discovered, customer after customer, was that the
-                hardware was rarely the bottleneck. The bottleneck was a
+                hardware was rarely the bottleneck. The real problem was a
                 fragmented supply chain — too many middlemen, too much markup,
-                too little accountability. So we expanded. We added solutions,
-                then services, then product categories where we saw the same
-                pattern.
+                too little accountability. So we expanded. We built turnkey RFID
+                solutions spanning software, readers, tags, and antennas, then
+                added advanced access control systems encompassing barcode, CCTV,
+                biometric, and surveillance technologies.
               </p>
               <p>
-                Today, RFLABS operates two flagship verticals: IoT Solutions and
-                Industrial Packaging. But the operating philosophy is bigger
-                than either category. We exist to identify undervalued,
-                underperforming, or breakthrough products — and through
-                acquisition, white-labeling, or exclusive channel partnerships,
-                turn them into category leaders.
+                Listening closely to our clients revealed yet another gap:
+                industrial packaging — a space riddled with inefficiency and
+                fragmentation — and so we stepped into that vertical too. Today,
+                RFLABS.in operates across two flagship verticals: IoT Solutions
+                and Industrial Packaging, with a growing portfolio of acquired
+                and white-labeled products, each chosen because we saw the same
+                pattern of unnecessary complexity and cost that we knew we could
+                fix.
               </p>
               <p>
                 We are lean by design. Founder-led. Capital-efficient. And we
                 stay that way deliberately — because every layer of overhead is
-                a layer between us and the customer.
+                a layer between us and the customer. We don&apos;t consult. We
+                commit.
               </p>
             </div>
           </div>
