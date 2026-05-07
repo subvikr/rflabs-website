@@ -2005,7 +2005,7 @@ function IoTPage({ navigate }) {
         subtitle="As an official Zebra Technologies channel partner, we supply and deploy industrial-grade IoT hardware: barcode scanners, RFID readers, mobile computers, industrial printers, and the integration work that makes them productive on day one."
       />
 
-      <section style={{ padding: "120px 0", background: "white" }}>
+      <section id="iot-zebra" style={{ padding: "120px 0", background: "white" }}>
         <div className="container">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48 }} className="iot-grid">
             <div>
@@ -2085,7 +2085,7 @@ function IoTPage({ navigate }) {
         `}</style>
       </section>
 
-      <section style={{ padding: "120px 0", background: "var(--powder)" }}>
+      <section id="iot-warehouse" style={{ padding: "120px 0", background: "var(--powder)" }}>
         <div className="container">
           <div style={{ marginBottom: 56 }}>
             <Eyebrow>Where it works</Eyebrow>
@@ -3971,8 +3971,26 @@ export default function App() {
   const [page, setPage] = useState("home");
 
   const navigate = (id) => {
-    setPage(id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const SECTION_PARENTS = {
+      "iot-zebra": "iot",
+      "iot-warehouse": "iot",
+    };
+    const parentPage = SECTION_PARENTS[id];
+    if (parentPage) {
+      setPage(parentPage);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.getElementById(id);
+          if (el) {
+            const top = el.getBoundingClientRect().top + window.scrollY - 84;
+            window.scrollTo({ top, behavior: "smooth" });
+          }
+        });
+      });
+    } else {
+      setPage(id);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const renderPage = () => {
