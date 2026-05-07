@@ -3950,7 +3950,7 @@ function ContactPage() {
                 </h3>
                 <p style={{ color: "var(--ink-2)", margin: 0, lineHeight: 1.8 }}>
                   2247, Trichy Road, Coimbatore — 641005<br />
-                  Walk-ins by appointment. Coimbatore is a 30-minute drive from the airport (CJB).
+                  Walk-ins by appointment. Our office is a 30-minute drive from the airport (CJB).
                 </p>
               </div>
             </div>
