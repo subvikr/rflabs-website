@@ -2612,14 +2612,14 @@ function StretchFilmPage({ navigate }) {
             <FilmCard
               title="Machine Grade"
               tag="HIGH-VOLUME"
-              spec="17–35 micron · 50cm width · pre-stretched options"
+              spec="17–29 micron · upto 2 m width · pre-stretched options"
               desc="High-performance film for automated wrapping systems. Maximum efficiency, excellent load retention. Ideal for high-throughput operations."
               image={IMAGES.rfMachineFilm}
             />
             <FilmCard
               title="Hand Grade"
               tag="VERSATILE"
-              spec="20–25 micron · 50cm width · cling-coated"
+              spec="20–52 micron · 1500 mm width"
               desc="Easy-to-use for manual wrapping. Superior cling and puncture resistance. Perfect for SMEs, irregular loads, and on-site needs."
               image={IMAGES.rfHandFilm}
             />
@@ -2872,7 +2872,7 @@ const ARTICLES = [
       { type: "p", text: "We've seen this in plant after plant, sector after sector. The wrapping technique is inherited, not engineered. The film gauge was specified by someone who left the company three years ago. The number of revolutions is whatever the operator was trained to do. None of it has been touched by data." },
       { type: "h", text: "The math behind the 26%" },
       { type: "p", text: "When we audit a wrapping operation, we measure five things: total roll weight, core weight (which is film you paid for but can't use), pallets wrapped per roll, monthly film consumption, and your blended rate per kilogram. From those, every other number falls out — film per pallet, cost per pallet, monthly spend, yearly spend." },
-      { type: "p", text: "A typical buyer using a 16.5kg roll, 25 pallets per roll, at ₹132/kg is paying ₹88 per pallet wrapped. Switching to a 14.7kg multi-layer roll that wraps 30 pallets — at a slightly higher ₹155/kg — drops the cost to ₹76 per pallet. That's ₹12 saved per pallet. At 600 pallets a month, the saving is ₹7,200 monthly, ₹86,400 annually." },
+      { type: "p", text: "A typical buyer using a standard 16.5kg roll wraps around 25 pallets per roll. Switching to a 14.7kg multi-layer roll — roughly 11% lighter — wraps 30 pallets per roll, a 20% increase in pallet yield. And while the per-kg price of the multi-layer roll is about 17% higher, the cost per pallet wrapped actually drops by nearly 14%. At a volume of 600 pallets a month, that single switch translates to meaningful monthly savings — and compounds to a significant annual reduction in packaging costs, without any change to wrapping quality or load security." },
       { type: "stat", value: "26%", label: "consumption reduction without compromising load stability" },
       { type: "p", text: "More importantly: the film weight per pallet drops from 0.66 kg to 0.49 kg. That's a 26% reduction in actual plastic going around your goods — which means a 26% reduction in the warehouse's plastic footprint, a 26% reduction in disposal cost downstream, and a 26% reduction in handling labour for changing rolls." },
       { type: "h", text: "Why this saving is invisible without an audit" },
@@ -2996,12 +2996,12 @@ const ARTICLES = [
       { type: "p", text: "Sustainability conversations in industrial packaging have been frustrating for the last decade. Every customer wants to use less plastic. Every supplier nods sympathetically. Then the quote arrives, and the recycled-content alternative is 25% more expensive than the virgin film, and the conversation quietly ends." },
       { type: "p", text: "That math is finally changing. Not because recycled material got cheaper — the underlying feedstock is still more expensive than virgin polyethylene. But because of two technological shifts that compound: multi-layer extrusion and downgauging." },
       { type: "h", text: "The multi-layer breakthrough" },
-      { type: "p", text: "Modern stretch film is no longer a single homogeneous layer of plastic. The best films are seven, nine, sometimes thirteen co-extruded layers — each engineered for a specific property. The outer layers handle puncture resistance. The middle layers carry the load and provide elasticity. The inner cling layer provides surface adhesion." },
+      { type: "p", text: "Modern stretch film is no longer a single homogeneous layer of plastic. The best films are seven, nine, upto 55 layers using nano technology — each engineered for a specific property. The outer layers handle puncture resistance. The middle layers carry the load and provide elasticity. The inner cling layer provides surface adhesion." },
       { type: "p", text: "This matters for sustainability because you can selectively use recycled material in layers where it doesn't hurt performance — the structural middle layers — while keeping virgin material in the layers where you need pristine quality. The result: a film with 30–40% recycled content that performs identically to all-virgin film, at a cost premium of 5–8% rather than 25%." },
       { type: "h", text: "Why downgauging is the bigger lever" },
       { type: "p", text: "Even at zero recycled content, using less film is the most powerful sustainability action. A 25-micron film produces twice the plastic waste of a 12-micron film over the same number of pallets — assuming both wrap the load adequately." },
       { type: "stat", value: "60%", label: "less plastic per pallet, achievable through aggressive downgauging" },
-      { type: "p", text: "Modern multi-layer technology has made aggressive downgauging viable. Where 25-micron film was the industry standard a decade ago, today's premium films deliver equivalent load retention at 14–17 microns. That's not marginal. That's a 40–60% reduction in raw material per pallet wrapped." },
+      { type: "p", text: "Modern multi-layer technology has made aggressive downgauging viable. Where 29-micron film was the industry standard a decade ago, today's premium films deliver equivalent load retention at 14–17 microns. That's not marginal. That's a 40–60% reduction in raw material per pallet wrapped." },
       { type: "p", text: "Combine that with 30% recycled content in the structural layers, and the per-pallet plastic footprint drops by 60–70% versus the old commodity standard. The cost stays roughly flat or improves. The sustainability story becomes provable, not aspirational." },
       { type: "h", text: "Where the math gets tricky" },
       { type: "p", text: "Recycled-content quality is not uniform. Post-industrial scrap (clean recycled material from manufacturing offcuts) is excellent. Post-consumer recycled (PCR) — film that's been used and reclaimed — is messier. PCR can carry contaminants, color variation, and inconsistent molecular weight. Films using high-PCR content require careful blending to maintain performance." },
