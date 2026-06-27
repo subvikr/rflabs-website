@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -52,6 +52,7 @@ const NAV = [
       { id: "pallet-wrap", label: "Pallet Wrap" },
       { id: "pallet-wrappers", label: "Pallet Wrappers" },
       { id: "calculator", label: "Savings Calculator" },
+      { id: "net-price-calculator", label: "Net Price Calculator" },
     ],
   },
   { id: "insights", label: "Insights" },
@@ -973,6 +974,7 @@ function Footer({ navigate }) {
             <FooterLink onClick={() => navigate("iot")}>IoT Solutions</FooterLink>
             <FooterLink onClick={() => navigate("packaging")}>Packaging</FooterLink>
             <FooterLink onClick={() => navigate("calculator")}>Savings Calculator</FooterLink>
+            <FooterLink onClick={() => navigate("net-price-calculator")}>Net Price Calculator</FooterLink>
           </div>
 
           <div>
@@ -2822,6 +2824,206 @@ function PalletWrappersPage({ navigate }) {
 // ────────────────────────────────────────────────────────────
 // CALCULATOR PAGE
 // ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────
+// NET PRICE CALCULATOR — strip the core, find the true ₹/kg
+// ────────────────────────────────────────────────────────────
+function NetCalcField({ label, value, onChange, placeholder, error, last = false }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        padding: "14px 0",
+        borderBottom: last ? "none" : "1px solid var(--line-soft)",
+        gap: 16,
+      }}
+    >
+      <div style={{ flex: 1 }}>
+        <label style={{ fontSize: 14, color: "var(--ink-2)", fontWeight: 500 }}>{label}</label>
+        {error && (
+          <div style={{ fontSize: 12, color: "#ef4444", marginTop: 3 }}>{error}</div>
+        )}
+      </div>
+      <input
+        type="number"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        min="0"
+        step="0.1"
+        style={{
+          width: 140,
+          padding: "8px 12px",
+          fontSize: 15,
+          fontWeight: 600,
+          fontFamily: "inherit",
+          border: error ? "1.5px solid #f87171" : "1px solid var(--line)",
+          borderRadius: 2,
+          color: "var(--navy)",
+          background: "white",
+          outline: "none",
+          textAlign: "right",
+        }}
+      />
+    </div>
+  );
+}
+
+function NetCalcRow({ label, value }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "13px 28px",
+        borderBottom: "1px solid var(--line-soft)",
+      }}
+    >
+      <span style={{ fontSize: 14, color: "var(--ink-2)" }}>{label}</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--navy)", fontFamily: "monospace" }}>{value}</span>
+    </div>
+  );
+}
+
+function NetPriceCalc() {
+  const [grossWeight, setGrossWeight] = useState("");
+  const [coreWeight, setCoreWeight] = useState("");
+  const [ratePerKg, setRatePerKg] = useState("");
+
+  const gw = parseFloat(grossWeight);
+  const cw = parseFloat(coreWeight);
+  const rate = parseFloat(ratePerKg);
+  const hasError = grossWeight && coreWeight && !isNaN(gw) && !isNaN(cw) && cw >= gw;
+
+  const calc = useMemo(() => {
+    if (!gw || !cw || !rate || isNaN(gw) || isNaN(cw) || isNaN(rate) || cw >= gw) return null;
+    const netWeight = gw - cw;
+    const totalPrice = gw * rate;
+    const netPricePerKg = totalPrice / netWeight;
+    return { netWeight, totalPrice, netPricePerKg };
+  }, [grossWeight, coreWeight, ratePerKg]);
+
+  const fmtRupee = (n) =>
+    "₹ " + n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtKg = (n) => n.toFixed(2) + " kg";
+
+  return (
+    <div>
+      {/* Input panel */}
+      <div style={{ background: "white", padding: "36px 36px 28px" }}>
+        <div className="mono" style={{ color: "var(--ink-3)", marginBottom: 6 }}>INPUTS</div>
+        <h3 style={{ fontSize: 22, fontWeight: 700, color: "var(--navy)", margin: "0 0 24px" }}>
+          Enter roll details
+        </h3>
+        <NetCalcField
+          label="Gross Weight with Core (kg)"
+          value={grossWeight}
+          onChange={setGrossWeight}
+          placeholder="e.g. 17.8"
+        />
+        <NetCalcField
+          label="Core Weight (kg)"
+          value={coreWeight}
+          onChange={setCoreWeight}
+          placeholder="e.g. 2.8"
+          error={hasError ? "Core weight must be less than gross weight" : null}
+        />
+        <NetCalcField
+          label="Rate per kg (₹)"
+          value={ratePerKg}
+          onChange={setRatePerKg}
+          placeholder="e.g. 165"
+          last
+        />
+      </div>
+
+      {/* Results */}
+      {calc && (
+        <div style={{ background: "var(--powder)", padding: "36px 36px 40px" }}>
+          <div className="mono" style={{ color: "var(--navy)", marginBottom: 18 }}>RESULTS</div>
+          <div style={{ background: "white", border: "1px solid var(--line)" }}>
+            <NetCalcRow label="Gross Weight" value={fmtKg(gw)} />
+            <NetCalcRow label="Core Weight" value={fmtKg(cw)} />
+            <NetCalcRow label="Net Film Weight" value={fmtKg(calc.netWeight)} />
+            <NetCalcRow label="Total Gross Price" value={fmtRupee(calc.totalPrice)} />
+          </div>
+          <div
+            style={{
+              marginTop: 16,
+              background: "var(--navy)",
+              padding: "24px 28px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
+            }}
+          >
+            <div>
+              <div className="mono" style={{ color: "var(--mint)", marginBottom: 4 }}>NET PRICE PER KG</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>True cost of usable film</div>
+            </div>
+            <div
+              style={{
+                fontSize: 36,
+                fontWeight: 900,
+                color: "white",
+                fontFamily: "'Lato', sans-serif",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {fmtRupee(calc.netPricePerKg)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!calc && !hasError && (grossWeight || coreWeight || ratePerKg) && (
+        <div style={{ padding: "20px 36px", background: "var(--powder)", color: "var(--ink-3)", fontSize: 14 }}>
+          Fill in all three fields to see results.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NetPriceCalculatorPage({ navigate }) {
+  return (
+    <>
+      <PageHero
+        eyebrow="Net Price Calculator"
+        bgImage={IMAGES.stretchFilm}
+        title={
+          <>
+            What are you{" "}
+            <strong style={{ color: "var(--mint)", fontWeight: 700 }}>actually paying</strong>{" "}
+            per kg?
+          </>
+        }
+        subtitle="Gross weight includes the core — which you can't use. Enter the roll details to find the true price per kg of usable film."
+      />
+      <section style={{ padding: "60px 0 120px", background: "var(--powder)" }}>
+        <div className="container">
+          <div
+            style={{
+              border: "1px solid var(--line)",
+              background: "white",
+              boxShadow: "0 30px 60px rgba(30,58,95,0.12)",
+              overflow: "hidden",
+              maxWidth: 560,
+            }}
+          >
+            <NetPriceCalc />
+          </div>
+        </div>
+      </section>
+      <CTAStrip navigate={navigate} />
+    </>
+  );
+}
+
 function CalculatorPage({ navigate }) {
   return (
     <>
@@ -4021,6 +4223,7 @@ export default function App() {
       case "pallet-wrap": return <PalletWrapPage navigate={navigate} />;
       case "pallet-wrappers": return <PalletWrappersPage navigate={navigate} />;
       case "calculator": return <CalculatorPage navigate={navigate} />;
+      case "net-price-calculator": return <NetPriceCalculatorPage navigate={navigate} />;
       case "insights": return <InsightsPage navigate={navigate} />;
       case "case-studies": return <CaseStudiesPage navigate={navigate} />;
       case "careers": return <CareersPage navigate={navigate} />;
