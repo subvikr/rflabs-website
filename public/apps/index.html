@@ -20,53 +20,72 @@
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
-  .wrap{max-width:900px; margin:0 auto; padding:80px 24px;}
+  .wrap{max-width:420px; width:100%; margin:0 auto; padding:24px;}
   .brand{font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--mint); margin-bottom:8px;}
   h1{font-size:32px; font-weight:300; margin:0 0 40px;}
 
   /* login gate */
   #loginGate{
-    display:flex; flex-direction:column; align-items:flex-start; gap:16px;
+    display:flex; flex-direction:column; align-items:stretch; gap:16px;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
     padding: 40px;
-    max-width: 420px;
+    max-width: 380px;
   }
-  #gateMessage{color:rgba(255,255,255,0.65); font-size:14px;}
+  #gateMessage{color:rgba(255,255,255,0.65); font-size:14px; margin-bottom:4px;}
+  #gateMessage:empty{display:none; margin:0;}
+  .field{position:relative;}
+  .field svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); opacity:0.5;}
+  .field input{
+    width:100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: white;
+    padding: 13px 14px 13px 42px;
+    font-size: 14px;
+    border-radius: 5px;
+    font-family: inherit;
+  }
+  .field input::placeholder{color:rgba(255,255,255,0.4);}
+  .field input:focus{outline:none; border-color:var(--mint);}
   #loginBtn{
     background: var(--mint);
     color: var(--navy);
     border:none;
-    padding: 12px 24px;
+    padding: 13px 24px;
     font-size: 14px;
     font-weight: 600;
     border-radius: 4px;
     cursor:pointer;
   }
   #loginBtn:hover{opacity:0.9;}
+  #loginBtn:disabled{opacity:0.6; cursor:default;}
+  #forgotLink{
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    text-align: center;
+    text-decoration: underline;
+    cursor: pointer;
+    background:none; border:none; font-family:inherit;
+  }
+  #forgotLink:hover{color:var(--mint);}
+  #loginError{
+    display:none;
+    background: rgba(200, 70, 60, 0.15);
+    border: 1px solid rgba(200, 70, 60, 0.4);
+    color: #f0a09a;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
 
   /* app tiles */
   #appRoot{display:none;}
-  .tiles{
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap:20px;
-  }
-  .tile{
-    display:block;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 8px;
-    padding: 28px;
-    text-decoration:none;
-    color:white;
-    transition: border-color 0.15s ease, background 0.15s ease;
-  }
-  .tile:hover{border-color: var(--mint); background: rgba(255,255,255,0.07);}
-  .tile-name{font-size:19px; font-weight:600; margin-bottom:8px;}
-  .tile-desc{font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5;}
   .top-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;}
   #userEmail{font-size:13px; color:rgba(255,255,255,0.55);}
   #logoutBtn{
@@ -80,12 +99,22 @@
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
 <div class="wrap">
-  <div class="brand">RFLABS</div>
-
   <div id="loginGate">
-    <h1 style="margin-bottom:8px;">Apps</h1>
-    <div id="gateMessage">Sign in to view the team's internal tools.</div>
-    <button id="loginBtn">Log in</button>
+    <h1 style="margin-bottom:8px; text-align:center;">RFLABS</h1>
+    <div id="gateMessage"></div>
+    <div id="loginError"></div>
+    <form id="loginForm" style="display:flex; flex-direction:column; gap:16px;">
+      <div class="field">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 4h16v16H4z" stroke="none"/><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+        <input type="email" id="emailInput" placeholder="Email" autocomplete="email" required />
+      </div>
+      <div class="field">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" required />
+      </div>
+      <button type="submit" id="loginBtn">Log in</button>
+      <button type="button" id="forgotLink">Forgot password?</button>
+    </form>
   </div>
 
   <div id="appRoot">
@@ -103,6 +132,63 @@
 </div>
 
 <script>
+/* ---------- talk to Netlify Identity's REST API directly, ---------- */
+/* ---------- so we can build our own themed form instead of ---------- */
+/* ---------- the default (unthemeable, iframed) widget modal ---------- */
+const SITE_URL = window.location.origin;
+const SESSION_KEY = 'rflabs_identity_session';
+
+async function apiLogin(email, password){
+  const res = await fetch(`${SITE_URL}/.netlify/identity/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'password', username: email, password })
+  });
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error_description || 'Incorrect email or password.');
+  }
+  return await res.json(); // { access_token, refresh_token, expires_in, ... }
+}
+async function apiRefresh(refresh_token){
+  const res = await fetch(`${SITE_URL}/.netlify/identity/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token })
+  });
+  if(!res.ok) throw new Error('Session expired');
+  return await res.json();
+}
+async function apiGetUser(access_token){
+  const res = await fetch(`${SITE_URL}/.netlify/identity/user`, {
+    headers: { Authorization: 'Bearer ' + access_token }
+  });
+  if(!res.ok) throw new Error('Session expired');
+  return await res.json();
+}
+async function apiRecover(email){
+  await fetch(`${SITE_URL}/.netlify/identity/recover`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+}
+
+function saveSession(tokenData){
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    access_token: tokenData.access_token,
+    refresh_token: tokenData.refresh_token,
+    expires_at: Date.now() + (tokenData.expires_in * 1000)
+  }));
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
 function showApp(user){
   document.getElementById('loginGate').style.display = 'none';
   document.getElementById('appRoot').style.display = 'block';
@@ -113,16 +199,82 @@ function showGate(message){
   document.getElementById('loginGate').style.display = 'flex';
   if(message) document.getElementById('gateMessage').textContent = message;
 }
+function showError(message){
+  const el = document.getElementById('loginError');
+  el.textContent = message;
+  el.style.display = 'block';
+}
+function clearError(){
+  document.getElementById('loginError').style.display = 'none';
+}
 
-document.getElementById('loginBtn').addEventListener('click', ()=> netlifyIdentity.open('login'));
-document.getElementById('logoutBtn').addEventListener('click', ()=> netlifyIdentity.logout());
+async function boot(){
+  const session = loadSession();
+  if(!session){ showGate(); return; }
 
-netlifyIdentity.on('init', (user)=>{ user ? showApp(user) : showGate(); });
-netlifyIdentity.on('login', (user)=>{ netlifyIdentity.close(); showApp(user); });
-netlifyIdentity.on('logout', ()=> showGate('Signed out. Log in to view the apps.'));
-netlifyIdentity.on('error', (err)=>{ console.error('Identity error', err); showGate('Something went wrong signing in — try again.'); });
+  let access_token = session.access_token;
+  // refresh if the token is expired or about to be (within 60s)
+  if(Date.now() > session.expires_at - 60000){
+    try{
+      const refreshed = await apiRefresh(session.refresh_token);
+      saveSession(refreshed);
+      access_token = refreshed.access_token;
+    }catch(e){
+      clearSession();
+      showGate('Your session expired. Please log in again.');
+      return;
+    }
+  }
 
-netlifyIdentity.init();
+  try{
+    const user = await apiGetUser(access_token);
+    showApp(user);
+  }catch(e){
+    clearSession();
+    showGate();
+  }
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  clearError();
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Logging in…';
+  try{
+    const tokenData = await apiLogin(email, password);
+    saveSession(tokenData);
+    const user = await apiGetUser(tokenData.access_token);
+    showApp(user);
+  }catch(err){
+    showError(err.message || 'Something went wrong logging in.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Log in';
+  }
+});
+
+document.getElementById('forgotLink').addEventListener('click', async ()=>{
+  const email = document.getElementById('emailInput').value.trim();
+  if(!email){ showError('Enter your email above first, then click "Forgot password?" again.'); return; }
+  clearError();
+  try{
+    await apiRecover(email);
+    document.getElementById('gateMessage').textContent = 'If that email is registered, a reset link is on its way.';
+  }catch(e){
+    showError('Could not send a reset email right now — try again shortly.');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  clearSession();
+  showGate('Signed out. Log in to view the apps.');
+});
+
+boot();
 </script>
 </body>
 </html>
+
