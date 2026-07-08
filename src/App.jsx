@@ -836,6 +836,24 @@ function Header({ current, navigate }) {
         </nav>
 
         {/* CTA */}
+        <a
+          href="/apps/"
+          className="desktop-cta"
+          style={{
+            padding: "10px 16px",
+            fontSize: 13,
+            fontWeight: 400,
+            color: "rgba(255,255,255,0.85)",
+            textDecoration: "none",
+            letterSpacing: "0.02em",
+            fontFamily: "inherit",
+            marginRight: 4,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--mint)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
+        >
+          Login
+        </a>
         <button
           className="btn btn-mint desktop-cta"
           onClick={() => navigate("contact")}
@@ -923,6 +941,24 @@ function Header({ current, navigate }) {
                 )}
               </div>
             ))}
+            <a
+              href="/apps/"
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                padding: "12px 0",
+                fontSize: 16,
+                fontWeight: 600,
+                color: "white",
+                textDecoration: "none",
+                fontFamily: "inherit",
+                borderTop: "1px solid rgba(255,255,255,0.1)",
+                marginTop: 8,
+              }}
+            >
+              Login
+            </a>
           </div>
         </div>
       )}

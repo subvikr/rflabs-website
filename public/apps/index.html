@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFLABS — Apps</title>
+<style>
+  :root{
+    --navy: #1E3A5F;
+    --navy-2: #16304f;
+    --mint: #7FD88E;
+    --ink: #131c24;
+    --paper: #ece4d3;
+    --paper-dim: #8f9aa3;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--navy);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:80px 24px;}
+  .brand{font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--mint); margin-bottom:8px;}
+  h1{font-size:32px; font-weight:300; margin:0 0 40px;}
+
+  /* login gate */
+  #loginGate{
+    display:flex; flex-direction:column; align-items:flex-start; gap:16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 420px;
+  }
+  #gateMessage{color:rgba(255,255,255,0.65); font-size:14px;}
+  #loginBtn{
+    background: var(--mint);
+    color: var(--navy);
+    border:none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor:pointer;
+  }
+  #loginBtn:hover{opacity:0.9;}
+
+  /* app tiles */
+  #appRoot{display:none;}
+  .tiles{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap:20px;
+  }
+  .tile{
+    display:block;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 28px;
+    text-decoration:none;
+    color:white;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .tile:hover{border-color: var(--mint); background: rgba(255,255,255,0.07);}
+  .tile-name{font-size:19px; font-weight:600; margin-bottom:8px;}
+  .tile-desc{font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5;}
+  .top-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;}
+  #userEmail{font-size:13px; color:rgba(255,255,255,0.55);}
+  #logoutBtn{
+    background:none; border:1px solid rgba(255,255,255,0.25); color:rgba(255,255,255,0.8);
+    padding:8px 14px; border-radius:4px; font-size:12px; cursor:pointer; margin-left:12px;
+  }
+  #logoutBtn:hover{border-color:var(--mint); color:var(--mint);}
+</style>
+</head>
+<body>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<div class="wrap">
+  <div class="brand">RFLABS</div>
+
+  <div id="loginGate">
+    <h1 style="margin-bottom:8px;">Apps</h1>
+    <div id="gateMessage">Sign in to view the team's internal tools.</div>
+    <button id="loginBtn">Log in</button>
+  </div>
+
+  <div id="appRoot">
+    <div class="top-row">
+      <h1 style="margin:0;">Apps</h1>
+      <div>
+        <span id="userEmail"></span>
+        <button id="logoutBtn">Log out</button>
+      </div>
+    </div>
+    <div style="color:rgba(255,255,255,0.6); font-size:14px;">
+      Logged in successfully. The project board and other tools will appear here next.
+    </div>
+  </div>
+</div>
+
+<script>
+function showApp(user){
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  document.getElementById('userEmail').textContent = user && user.email ? user.email : '';
+}
+function showGate(message){
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'flex';
+  if(message) document.getElementById('gateMessage').textContent = message;
+}
+
+document.getElementById('loginBtn').addEventListener('click', ()=> netlifyIdentity.open('login'));
+document.getElementById('logoutBtn').addEventListener('click', ()=> netlifyIdentity.logout());
+
+netlifyIdentity.on('init', (user)=>{ user ? showApp(user) : showGate(); });
+netlifyIdentity.on('login', (user)=>{ netlifyIdentity.close(); showApp(user); });
+netlifyIdentity.on('logout', ()=> showGate('Signed out. Log in to view the apps.'));
+netlifyIdentity.on('error', (err)=>{ console.error('Identity error', err); showGate('Something went wrong signing in — try again.'); });
+
+netlifyIdentity.init();
+</script>
+</body>
+</html>
