@@ -7,3 +7,7 @@
   command = "npm run dev"
   targetPort = 5173
   publish = "dist"
+[[redirects]]
+  from = "/apps/"
+  to = "/apps/index.html"
+  status = 200
