@@ -4,7 +4,19 @@
       "Bash(node:*)",
       "Bash(netlify --version)",
       "Bash(npm run:*)",
-      "Bash(netlify deploy:*)"
+      "Bash(netlify deploy:*)",
+      "Bash(git status *)",
+      "Bash(rm -rf mnt)",
+      "Bash(echo \"mnt removed: $?\")",
+      "Bash(git checkout *)",
+      "Bash(netlify dev *)",
+      "Bash(echo \"started, pid $!\")",
+      "Bash(curl -s -o /dev/null -w \"port 50830 status:%{http_code}\\\\n\" http://localhost:50830/ --max-time 3)",
+      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '\\\\''netlify'\\\\'' -or $_.CommandLine -match '\\\\''vite'\\\\'' } | Select-Object ProcessId, Name, CommandLine | Format-List')",
+      "Bash(netlify sites:list --json)",
+      "Bash(netlify link *)",
+      "Bash(curl *)",
+      "PowerShell(Get-CimInstance *)"
     ]
   }
 }

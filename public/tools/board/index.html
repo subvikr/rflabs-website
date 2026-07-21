@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RFLABS VISION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #1E3A5F;
+    --surface: rgba(255,255,255,0.04);
+    --surface-raised: rgba(255,255,255,0.07);
+    --hairline: rgba(255,255,255,0.14);
+    --paper: #ffffff;
+    --paper-dim: rgba(255,255,255,0.65);
+    --brass: #7FD88E;
+    --brass-dim: rgba(127,216,142,0.45);
+    --sage: #7FD88E;
+    --rust: #E2725B;
+    --slate: rgba(255,255,255,0.5);
+    --font-display: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-display);
+    min-height:100vh;
+    padding: 28px 20px 80px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+
+  /* header */
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom:16px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .masthead h1{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family: var(--font-display);
+    font-weight:600;
+
+    font-size:34px;
+    margin:0;
+    color:var(--paper);
+    letter-spacing:0.3px;
+  }
+  .home-link{
+    display:inline-flex;
+    color: var(--paper-dim);
+    transition: color 0.15s ease;
+    text-decoration:none;
+  }
+  .home-link:hover{ color:var(--brass); }
+  .masthead .sub{
+    font-size:11px;
+    color:var(--brass);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+  .btn{
+    font-family:var(--font-display);
+    font-size:12px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    background:transparent;
+    color:var(--brass);
+    border:1px solid var(--brass-dim);
+    padding:10px 16px;
+    border-radius:2px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .btn:hover{background:var(--brass); color:var(--ink); border-color:var(--brass);}
+  .btn:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+  .btn.ghost{color:var(--paper-dim); border-color:var(--hairline);}
+  .btn.ghost:hover{background:var(--surface-raised); color:var(--paper);}
+  .btn.small{padding:6px 10px; font-size:11px;}
+  .btn.danger:hover{background:var(--rust); border-color:var(--rust); color:var(--paper);}
+
+  /* new project inline form */
+  #newProjectForm{
+    display:none;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-left:3px solid var(--brass);
+    padding:16px;
+    margin-bottom:24px;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  #newProjectForm.show{display:flex;}
+  #newProjectForm{ flex-direction:column; align-items:stretch; }
+  #newProjectForm .form-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  #newProjectForm input,
+  #newProjectForm select,
+  #newProjectForm textarea{
+    flex:1;
+    min-width:160px;
+    background:var(--ink);
+    border:1px solid var(--hairline);
+    color:var(--paper);
+    padding:10px 12px;
+    font-family:var(--font-display);
+    font-size:13px;
+    border-radius:2px;
+  }
+  #newProjectForm textarea{ min-width:100%; resize:vertical; min-height:44px; }
+  #newProjectForm input:focus-visible,
+  #newProjectForm select:focus-visible,
+  #newProjectForm textarea:focus-visible{outline:2px solid var(--brass);}
+  #newProjectForm .form-actions{ display:flex; gap:10px; }
+  .icon-picker{ display:flex; gap:8px; flex-wrap:wrap; }
+  .icon-choice{
+    width:36px; height:36px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--hairline);
+    background:var(--surface);
+    cursor:pointer;
+  }
+  .icon-choice svg{ width:18px; height:18px; }
+  .icon-choice.active{ border-color:var(--paper); outline:2px solid var(--paper); outline-offset:1px; }
+
+  .vision-edit{ margin-bottom:8px; animation: visionFadeIn .15s ease; }
+  @keyframes visionFadeIn{ from{opacity:0; transform:translateY(-3px);} to{opacity:1; transform:translateY(0);} }
+  .vision-view{ display:flex; align-items:flex-start; gap:12px; margin-bottom:8px; }
+  .vision-view-text{ flex:1; min-width:0; }
+  .vision-view-desc{ font-size:13px; color:var(--paper-dim); margin-top:6px; line-height:1.4; }
+  .vision-view-desc.placeholder{ font-style:italic; opacity:0.6; }
+  .icon-square.sm{ width:32px; height:32px; border-radius:8px; }
+  .icon-square.sm svg{ width:16px; height:16px; }
+  .icon-btn{
+    background:transparent; border:1px solid var(--hairline); border-radius:6px;
+    width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+    color:var(--paper-dim); cursor:pointer; flex-shrink:0;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .icon-btn:hover{ border-color:var(--brass-dim); color:var(--brass); }
+  .icon-btn:focus-visible{ outline:2px solid var(--brass); outline-offset:2px; }
+  .icon-btn svg{ width:14px; height:14px; }
+  .vision-edit .form-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .vision-edit select, .vision-edit textarea{
+    background:var(--ink); border:1px solid var(--hairline); color:var(--paper);
+    padding:10px 12px; font-family:var(--font-display); font-size:13px; border-radius:2px;
+  }
+  .vision-edit select{ min-width:150px; }
+  .vision-edit textarea{ width:100%; resize:vertical; min-height:44px; }
+  .vision-edit select:focus-visible, .vision-edit textarea:focus-visible{ outline:2px solid var(--brass); }
+
+  /* board grid */
+  #board{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 300px));
+    justify-content:start;
+    gap:14px;
+    margin-bottom: 30px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    padding:20px;
+    cursor:pointer;
+    transition: border-color .15s ease, transform .1s ease, background .15s ease;
+    position:relative;
+  }
+  .card:hover{border-color:var(--brass-dim);}
+  .card:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+  .card.selected{border-color:var(--brass); background:var(--surface-raised);}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .icon-square{
+    width:44px; height:44px; flex-shrink:0;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-square svg{ width:22px; height:22px; }
+  .ring{flex-shrink:0;}
+  .card-name{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:18px;
+    color:var(--paper);
+    line-height:1.3;
+    margin-top:16px;
+  }
+  .card-desc{
+    font-size:13px;
+    color:var(--paper-dim);
+    line-height:1.5;
+    margin-top:8px;
+    min-height:1.5em;
+  }
+  .card-desc.placeholder{ font-style:italic; opacity:0.6; }
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    font-family:var(--font-display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    padding:5px 12px;
+    border-radius:20px;
+    margin-top:14px;
+  }
+  .milestone-count{
+    font-size:11px; color:var(--paper-dim); margin-top:12px;
+  }
+  .next-action{
+    font-size:12px;
+    color:var(--paper-dim);
+    margin-top:12px;
+    line-height:1.4;
+    border-top:1px dashed var(--hairline);
+    padding-top:10px;
+  }
+  .next-action .label{color:var(--brass); text-transform:uppercase; font-size:10px; letter-spacing:1px; display:block; margin-bottom:3px;}
+  .next-action .mname{color:var(--brass);}
+  .empty-board{
+    grid-column:1/-1;
+    text-align:center;
+    padding:50px 20px;
+    color:var(--paper-dim);
+    border:1px dashed var(--hairline);
+    font-family: var(--font-display);
+    font-size:13px;
+  }
+  .empty-board .label{color:var(--brass); display:block; font-family:var(--font-display); font-size:20px; margin-bottom:8px;}
+
+  /* detail panel */
+  #detail{display:none;}
+  #detail.show{display:block;}
+  .detail-panel{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-top:3px solid var(--brass);
+    padding:24px;
+  }
+  .detail-head{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:1px solid var(--hairline);
+    padding-bottom:16px; margin-bottom:20px;
+    flex-wrap:wrap; gap:12px;
+  }
+  .detail-head h2{
+    font-family:var(--font-display); font-weight:600;
+    font-size:26px; margin:0;
+  }
+  .detail-actions{display:flex; gap:8px; align-items:flex-start;}
+
+  .section-title{
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--brass); margin: 22px 0 10px;
+  }
+  .section-title:first-child{margin-top:0;}
+
+  .add-row{
+    display:flex; gap:8px;
+  }
+  .add-row input{
+    flex:1; background:var(--surface); border:1px solid var(--hairline); color:var(--paper);
+    padding:8px 10px; font-family:var(--font-display); font-size:13px; border-radius:2px;
+  }
+  .add-row input:focus-visible{outline:2px solid var(--brass);}
+  .remove-x{
+    color:var(--paper-dim); cursor:pointer; font-size:14px; padding:2px 6px; flex-shrink:0;
+  }
+  .remove-x:hover{color:var(--rust);}
+
+  /* milestones: capped-width list, not a card grid */
+  .milestones-list{
+    max-width:560px;
+    border-top:1px solid var(--hairline);
+    margin-bottom:6px;
+  }
+  .milestone-row{
+    display:flex; align-items:center; gap:10px;
+    padding:14px 4px;
+    border-bottom:1px solid var(--hairline);
+    cursor:pointer;
+  }
+  .milestone-row:hover{ background:var(--surface); }
+  .milestone-caret{color:var(--brass); font-size:11px; flex-shrink:0; transition: transform .15s ease;}
+  .milestone-row.expanded .milestone-caret{transform: rotate(90deg);}
+  .milestone-row-name{
+    font-family:var(--font-display); font-size:15px; color:var(--paper); flex:1;
+  }
+  .milestone-row-count{ font-size:12px; color:var(--paper-dim); flex-shrink:0; }
+  .milestone-delete-btn{
+    width:26px; height:26px; flex-shrink:0; cursor:pointer;
+    border:none; background:none; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    color:rgba(255,255,255,0.3); transition:color .15s ease;
+  }
+  .milestone-delete-btn:hover{ color:var(--rust); }
+  .milestone-delete-btn svg{ width:15px; height:15px; }
+
+  .milestone-body{
+    background:var(--surface);
+    padding:4px 4px 16px 28px;
+    border-bottom:1px solid var(--hairline);
+    cursor:default;
+  }
+
+  /* task rows */
+  .task-row{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 0;
+    border-bottom:1px dashed var(--hairline);
+  }
+  .task-row:last-of-type{ border-bottom:none; }
+  .task-status-btn{
+    width:20px; height:20px; flex-shrink:0; cursor:pointer;
+    border:none; padding:0; background:none;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0.9; transition:opacity .15s ease;
+  }
+  .task-status-btn:hover{ opacity:1; }
+  .task-status-btn svg{ width:16px; height:16px; }
+  .task-row-title{ font-size:13px; color:var(--paper); }
+  .task-row-title.done{ color:var(--paper-dim); text-decoration:line-through; }
+  .task-row-desc{ font-size:11px; color:var(--paper-dim); margin-top:2px; }
+  .task-row-spacer{ flex:1; min-width:8px; }
+  .task-row-date{
+    font-family:var(--font-mono); font-size:10px; color:var(--paper-dim); flex-shrink:0;
+  }
+  .task-row-remove{
+    color:var(--paper-dim); cursor:pointer; font-size:14px; padding:2px 4px; flex-shrink:0;
+  }
+  .task-row-remove:hover{color:var(--rust);}
+
+  /* quiet "+ add" links, replacing the old dashed panels */
+  .add-link{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 4px 0;
+    cursor:pointer;
+    color:var(--paper-dim);
+    font-size:13px;
+    font-family:var(--font-display);
+    background:none; border:none;
+  }
+  .add-link:hover{ color:var(--brass); }
+  .add-link.danger-link:hover{ color:var(--rust); }
+  .add-link .plus{ color:var(--brass); font-size:14px; line-height:1; }
+  .milestones-list-footer .add-link{ padding-top:14px; }
+
+  .inline-add-row{
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    padding:10px 0 0;
+  }
+  .inline-add-row input[type="text"]{
+    flex:1; min-width:140px;
+    background:var(--ink); border:1px solid var(--hairline); color:var(--paper);
+    padding:8px 10px; font-family:var(--font-display); font-size:12px; border-radius:2px;
+  }
+  .inline-add-row select{
+    background:var(--ink); border:1px solid var(--hairline); color:var(--paper);
+    padding:8px 10px; font-family:var(--font-display); font-size:12px; border-radius:2px;
+  }
+  .inline-add-row input:focus-visible, .inline-add-row select:focus-visible{ outline:2px solid var(--brass); }
+  .inline-add-desc-toggle{
+    font-size:11px; color:var(--paper-dim); cursor:pointer;
+    text-decoration:underline; text-underline-offset:2px;
+    background:none; border:none; font-family:var(--font-display); padding:0;
+  }
+  .inline-add-desc-toggle:hover{ color:var(--brass); }
+  .inline-add-desc{
+    width:100%; margin-top:8px;
+    background:var(--ink); border:1px solid var(--hairline); color:var(--paper);
+    padding:8px 10px; font-family:var(--font-display); font-size:12px; border-radius:2px;
+    resize:vertical; min-height:36px;
+  }
+  .field-label{
+    font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--paper-dim); margin-bottom:4px; display:block;
+  }
+
+  @media (max-width:600px){
+    .masthead{flex-direction:column; align-items:flex-start;}
+    .milestones-list{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginGate" style="min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; font-family:'Lato',sans-serif; background:#1E3A5F; color:#ffffff;">
+  <div style="font-family:'Lato',sans-serif; font-weight:700; font-size:28px;">RFLABS VISION</div>
+  <div id="gateMessage" style="color:rgba(255,255,255,0.65); font-size:13px;">Redirecting you to log in&hellip;</div>
+</div>
+
+<div id="appRoot" style="display:none;">
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <div class="sub">RFLABS VISION</div>
+      <h1>
+        <a class="home-link" href="/apps/" title="Back to Apps" aria-label="Back to Apps">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11l9-8 9 8"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+        </a>
+        Project Board
+      </h1>
+    </div>
+    <button class="btn" id="newProjectBtn">+ New Project</button>
+  </div>
+
+  <div id="newProjectForm">
+    <div class="form-row">
+      <input type="text" id="newProjectName" placeholder="Project name (e.g. Project alpha)" />
+      <select id="newProjectStatus"></select>
+    </div>
+    <textarea id="newProjectDesc" placeholder="One-line vision statement (optional)" rows="2"></textarea>
+    <div class="form-row" style="align-items:center;">
+      <span class="field-label" style="margin:0 4px 0 0;">Icon</span>
+      <div class="icon-picker" id="newProjectIconPicker"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn small" id="createProjectBtn">Add</button>
+      <button class="btn small ghost" id="cancelProjectBtn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="board"></div>
+
+  <div id="detail"></div>
+
+</div>
+</div>
+
+<script>
+const TASK_STATUSES = {
+  todo:       { label:'To do',       color:'rgba(255,255,255,0.4)' },
+  inprogress: { label:'In progress', color:'#5B9BE0' },
+  done:       { label:'Done',        color:'#7FD88E' }
+};
+const TASK_STATUS_CYCLE = ['todo','inprogress','done'];
+
+function taskStatusIconSVG(status, color){
+  if(status === 'done'){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/></svg>`;
+  }
+  if(status === 'inprogress'){
+    return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="1.8"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="${color}" stroke="none"/></svg>`;
+  }
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>`;
+}
+
+/* project-level status: drives both the icon-square color and the status pill */
+const PROJECT_STATUSES = {
+  planning: { label:'Planning', color:'#8DA4C0' },
+  ontrack:  { label:'On track', color:'#5B9BE0' },
+  ahead:    { label:'Ahead',    color:'#7FD88E' },
+  atrisk:   { label:'At risk',  color:'#E0A34F' },
+  blocked:  { label:'Blocked',  color:'#E2725B' }
+};
+const DEFAULT_ICON_ORDER = ['rocket','chart','tools','people','globe','flag','target','book'];
+
+const ICONS = {
+  rocket: '<path d="M13.5 2.5a5 5 0 0 1 5 5c0 3-2 5-2 5l-3 3-3-3s-2-2-2-5a5 5 0 0 1 5-5Z"/><circle cx="13.5" cy="7.5" r="1.5"/><path d="M8 15l-2 2 1 3 3-1"/>',
+  chart:  '<path d="M3 17V9"/><path d="M9 17V4"/><path d="M15 17v-6"/><path d="M21 17V2"/>',
+  tools:  '<path d="M14 7l3 3-9 9H5v-3l9-9Z"/><path d="M13 6l5 5"/><path d="M4 20l3-3"/>',
+  people: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.3"/><path d="M15.5 12.3c2.6.3 4.5 2 4.5 4.7"/>',
+  globe:  '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.5 6 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-6-3.5-9s1-6.5 3.5-9Z"/>',
+  flag:   '<path d="M5 21V4"/><path d="M5 4h13l-3 4.5L18 13H5"/>',
+  target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+  book:   '<path d="M4 5a2 2 0 0 1 2-2h6v18H6a2 2 0 0 0-2 2V5Z"/><path d="M12 3h6a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2h-6"/>'
+};
+function iconSVG(name, color){
+  const paths = ICONS[name] || ICONS.flag;
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="${color||'#ffffff'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+}
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ---------- storage adapter: talks to the Netlify Function, authenticated ---------- */
+/* ---------- via the same session /apps/ already established               ---------- */
+const BOARD_API = '/.netlify/functions/board-data';
+const SESSION_KEY = 'rflabs_identity_session';
+
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
+async function authHeaders(){
+  const session = loadSession();
+  if(!session || !session.access_token) throw new Error('Not logged in');
+  return { 'Authorization': 'Bearer ' + session.access_token };
+}
+
+window.storage = {
+  async get(key){
+    const res = await fetch(`${BOARD_API}?key=${encodeURIComponent(key)}`, {
+      headers: await authHeaders()
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(res.status === 404) return null;
+    if(!res.ok) throw new Error('Storage get failed: ' + res.status);
+    return await res.json(); // { key, value }
+  },
+  async set(key, value){
+    const res = await fetch(BOARD_API, {
+      method: 'POST',
+      headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value })
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(!res.ok) return null;
+    return await res.json();
+  },
+  async delete(key){
+    const res = await fetch(`${BOARD_API}?key=${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+      headers: await authHeaders()
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(!res.ok) return null;
+    return await res.json();
+  },
+  // fetch multiple keys in a single round-trip instead of one request per key
+  async getMany(keys){
+    if(!keys.length) return {};
+    const res = await fetch(`${BOARD_API}?keys=${encodeURIComponent(keys.join(','))}`, {
+      headers: await authHeaders()
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(!res.ok) throw new Error('Storage getMany failed: ' + res.status);
+    const data = await res.json();
+    return data.values || {}; // { key: value, ... } — missing keys are simply absent
+  }
+};
+
+let projects = {};
+let projectOrder = [];
+let selectedId = null;
+let expandedMilestoneId = null;
+let addMilestoneFormOpen = false;
+let addTaskFormOpenFor = null;
+let addTaskDescOpenFor = null;
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+/* ---------- data model ---------- */
+let nextIconCursor = 0;
+function newProjectObj(name, opts){
+  opts = opts || {};
+  const icon = opts.icon || DEFAULT_ICON_ORDER[nextIconCursor++ % DEFAULT_ICON_ORDER.length];
+  return {
+    id: uid(),
+    name,
+    description: opts.description || '',
+    status: opts.status && PROJECT_STATUSES[opts.status] ? opts.status : 'planning',
+    icon: ICONS[icon] ? icon : 'flag',
+    milestones: []
+  };
+}
+function newMilestoneObj(name){
+  return { id: uid(), name, tasks: [] };
+}
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function newTaskObj({title, description, status}){
+  return { id: uid(), title, description: description||'', status: status||'todo', date: todayISO() };
+}
+
+// migrate any older data shapes into the current structure
+function migrateTask(t){
+  if(t.title !== undefined && t.status !== undefined) return t; // already current
+  // old shape: {id, text, done}
+  return {
+    id: t.id || uid(),
+    title: t.text || t.title || 'Task',
+    description: '',
+    status: t.done ? 'done' : 'todo',
+    date: ''
+  };
+}
+function migrateProject(raw){
+  let milestones = [];
+  if(Array.isArray(raw.milestones)){
+    milestones = raw.milestones.map(m=>{
+      if(Array.isArray(m.tasks)){
+        return { id:m.id, name:m.name, tasks: m.tasks.map(migrateTask) };
+      }
+      // very old shape: milestone itself was {id, text, achieved, date}
+      return {
+        id: m.id || uid(),
+        name: m.text || m.name || 'Milestone',
+        tasks: [{ id: uid(), title: m.text || m.name || 'Task', description:'', status: m.achieved?'done':'todo', date: m.date||'' }]
+      };
+    });
+  }
+  if(Array.isArray(raw.todos) && raw.todos.length){
+    milestones.push({
+      id: uid(),
+      name: 'General',
+      tasks: raw.todos.map(t => ({ id: t.id||uid(), title: t.text, description:'', status: t.done?'done':'todo', date:'' }))
+    });
+  }
+  return {
+    id: raw.id,
+    name: raw.name,
+    description: raw.description || '',
+    status: raw.status && PROJECT_STATUSES[raw.status] ? raw.status : 'planning',
+    icon: raw.icon && ICONS[raw.icon] ? raw.icon : 'flag',
+    milestones
+  };
+}
+
+function milestoneProgress(m){
+  if(!m.tasks.length) return 0;
+  return Math.round((m.tasks.filter(t=>t.status==='done').length / m.tasks.length) * 100);
+}
+function projectProgress(p){
+  let total=0, done=0;
+  p.milestones.forEach(m=>{ total += m.tasks.length; done += m.tasks.filter(t=>t.status==='done').length; });
+  if(total===0) return 0;
+  return Math.round((done/total)*100);
+}
+function nextAction(p){
+  for(const m of p.milestones){
+    const t = m.tasks.find(x=>x.status!=='done');
+    if(t) return { milestone: m.name, task: t.title };
+  }
+  return null;
+}
+
+/* ---------- storage ---------- */
+async function loadAll(){
+  try{
+    const idx = await window.storage.get('project-ids', false);
+    projectOrder = idx ? JSON.parse(idx.value) : [];
+  }catch(e){ projectOrder = []; }
+
+  projects = {};
+  if(projectOrder.length){
+    try{
+      const keys = projectOrder.map(id => 'project:'+id);
+      const values = await window.storage.getMany(keys);
+      for(const id of projectOrder){
+        const raw = values['project:'+id];
+        if(raw) projects[id] = migrateProject(JSON.parse(raw));
+      }
+    }catch(e){ console.error('failed to load projects', e); }
+  }
+  render();
+}
+async function saveIndex(){
+  try{ await window.storage.set('project-ids', JSON.stringify(projectOrder), false); }
+  catch(e){ console.error('index save failed', e); }
+}
+async function saveProject(id){
+  try{
+    const result = await window.storage.set('project:'+id, JSON.stringify(projects[id]), false);
+    return !!result;
+  }catch(e){
+    console.error('project save failed', e);
+    return false;
+  }
+}
+async function deleteProjectStorage(id){
+  try{ await window.storage.delete('project:'+id, false); }catch(e){}
+}
+
+function flashSaveStatus(ok){
+  const el = document.getElementById('saveStatus');
+  if(!el) return;
+  el.textContent = ok ? 'Saved' : 'Save failed — try again';
+  el.style.color = ok ? 'var(--sage)' : 'var(--rust)';
+  el.style.opacity = '1';
+  clearTimeout(window.__saveStatusTimer);
+  window.__saveStatusTimer = setTimeout(()=>{ el.style.opacity='0'; }, 1600);
+}
+
+function ringSVG(pct, size=44){
+  const r = (size/2)-4;
+  const c = 2*Math.PI*r;
+  const offset = c - (pct/100)*c;
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="4"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#7FD88E" stroke-width="4"
+      stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round"
+      transform="rotate(-90 ${size/2} ${size/2})"/>
+    <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-size="11" font-family="IBM Plex Mono, monospace">${pct}%</text>
+  </svg>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  renderBoard();
+  renderDetail();
+}
+
+function renderBoard(){
+  const board = document.getElementById('board');
+  if(projectOrder.length === 0){
+    board.innerHTML = `<div class="empty-board"><span class="label">The board is clear</span>Add your first project to start tracking it.</div>`;
+    return;
+  }
+  board.innerHTML = projectOrder.map(id => {
+    const p = projects[id];
+    if(!p) return '';
+    const na = nextAction(p);
+    const st = PROJECT_STATUSES[p.status] || PROJECT_STATUSES.planning;
+    return `
+      <div class="card ${id===selectedId?'selected':''}" tabindex="0" data-id="${id}">
+        <div class="card-top">
+          <div class="icon-square" style="background:${st.color};">${iconSVG(p.icon, '#ffffff')}</div>
+        </div>
+        <div class="card-name">${escapeHtml(p.name)}</div>
+        <div class="card-desc ${p.description ? '' : 'placeholder'}">${p.description ? escapeHtml(p.description) : 'No vision statement yet.'}</div>
+        <div class="status-pill" style="background:${hexToRgba(st.color,0.16)}; color:${st.color};">${st.label}</div>
+        <div class="milestone-count">${p.milestones.length} milestone${p.milestones.length===1?'':'s'}</div>
+        <div class="next-action">
+          <span class="label">Next up</span>
+          ${na ? `<span class="mname">${escapeHtml(na.milestone)}:</span> ${escapeHtml(na.task)}`
+               : (p.milestones.length ? 'All tasks complete' : 'No milestones yet')}
+        </div>
+      </div>`;
+  }).join('');
+
+  board.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const wasSelected = selectedId === card.dataset.id;
+      selectedId = wasSelected ? null : card.dataset.id;
+      expandedMilestoneId = null;
+      addMilestoneFormOpen = false;
+      addTaskFormOpenFor = null;
+      addTaskDescOpenFor = null;
+      render();
+      if(selectedId){
+        setTimeout(()=>document.getElementById('detail').scrollIntoView({behavior:'smooth', block:'start'}), 50);
+      }
+    });
+    card.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); card.click(); }
+    });
+  });
+}
+
+function taskStatusIconHTML(t){
+  const cur = TASK_STATUSES[t.status] || TASK_STATUSES.todo;
+  return `<button type="button" class="task-status-btn" data-mid="${t._mid}" data-tid="${t.id}" title="${cur.label} — click to change" aria-label="Status: ${cur.label}">${taskStatusIconSVG(t.status, cur.color)}</button>`;
+}
+
+function renderDetail(){
+  const detail = document.getElementById('detail');
+  if(!selectedId || !projects[selectedId]){
+    detail.classList.remove('show');
+    detail.innerHTML = '';
+    return;
+  }
+  detail.classList.add('show');
+  const p = projects[selectedId];
+
+  detail.innerHTML = `
+    <div class="detail-panel">
+      <div class="detail-head">
+        <h2>${escapeHtml(p.name)}</h2>
+        <div class="detail-actions">
+          <span id="saveStatus" style="font-size:11px;color:var(--sage);align-self:center;opacity:0;transition:opacity .3s;">Saved</span>
+          <button class="btn small ghost" id="closeDetailBtn">Close</button>
+          <button class="btn small danger" id="deleteProjectBtn">Delete project</button>
+        </div>
+      </div>
+
+      <div class="section-title">Vision</div>
+      <div class="vision-view" id="visionView">
+        <div class="icon-square sm" id="visionViewIcon" style="background:${(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color};">${iconSVG(p.icon,'#ffffff')}</div>
+        <div class="vision-view-text">
+          <span class="status-pill" id="visionViewPill" style="background:${hexToRgba((PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color,0.16)}; color:${(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color};">${(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).label}</span>
+          <div class="vision-view-desc ${p.description ? '' : 'placeholder'}" id="visionViewDesc">${p.description ? escapeHtml(p.description) : 'No vision statement yet.'}</div>
+        </div>
+        <button class="icon-btn" id="visionEditToggle" title="Edit vision" aria-label="Edit vision">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+      </div>
+      <div class="vision-edit" id="visionEdit" style="display:none;">
+        <div class="form-row" style="margin-bottom:10px;">
+          <select id="editStatus"></select>
+          <div class="icon-picker" id="editIconPicker"></div>
+          <button class="icon-btn" id="visionEditDone" title="Done editing" aria-label="Done editing">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+        </div>
+        <textarea id="editDesc" placeholder="One-line vision statement" rows="2">${escapeHtml(p.description)}</textarea>
+      </div>
+
+      <div class="section-title">Milestones</div>
+      ${p.milestones.length ? `<div class="milestones-list">` + p.milestones.map(m=>{
+        const isOpen = m.id === expandedMilestoneId;
+        const doneCount = m.tasks.filter(t=>t.status==='done').length;
+        return `
+        <div class="milestone-row ${isOpen?'expanded':''}" data-mid="${m.id}">
+          <span class="milestone-caret">▶</span>
+          <span class="milestone-row-name">${escapeHtml(m.name)}</span>
+          <span class="milestone-row-count">${doneCount}/${m.tasks.length}</span>
+          <button type="button" class="milestone-delete-btn milestone-remove-link" data-mid="${m.id}" title="Delete milestone" aria-label="Delete milestone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+          </button>
+        </div>
+        ${isOpen ? `
+        <div class="milestone-body">
+          ${m.tasks.map(t=>{
+            t._mid = m.id;
+            return `
+            <div class="task-row" data-mid="${m.id}" data-tid="${t.id}">
+              ${taskStatusIconHTML(t)}
+              <div>
+                <div class="task-row-title ${t.status==='done'?'done':''}">${escapeHtml(t.title)}</div>
+                ${t.description ? `<div class="task-row-desc">${escapeHtml(t.description)}</div>` : ''}
+              </div>
+              <span class="task-row-spacer"></span>
+              ${t.date ? `<span class="task-row-date">${escapeHtml(formatDate(t.date))}</span>` : ''}
+              <span class="remove-x task-row-remove" data-mid="${m.id}" data-tid="${t.id}">✕</span>
+            </div>`;
+          }).join('')}
+
+          ${addTaskFormOpenFor === m.id ? `
+          <div class="inline-add-row">
+            <input type="text" class="new-task-title" data-mid="${m.id}" placeholder="Task title"/>
+            <select class="new-task-status" data-mid="${m.id}">
+              ${Object.entries(TASK_STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}
+            </select>
+            <button class="btn small add-task-btn" data-mid="${m.id}">Add</button>
+          </div>
+          ${addTaskDescOpenFor === m.id
+            ? `<textarea class="inline-add-desc new-task-desc" data-mid="${m.id}" placeholder="Short description (optional)"></textarea>`
+            : `<button type="button" class="inline-add-desc-toggle add-task-desc-toggle" data-mid="${m.id}" style="margin-top:8px;">+ add description</button>`}
+          ` : `<div class="add-link add-task-link" data-mid="${m.id}"><span class="plus">+</span>Add a task</div>`}
+        </div>` : ''}`;
+      }).join('') + `</div>` : '<div style="font-size:13px;color:var(--paper-dim);margin-bottom:10px;">No milestones yet — add one below.</div>'}
+
+      <div class="milestones-list-footer">
+        ${addMilestoneFormOpen ? `
+        <div class="inline-add-row" style="max-width:400px;">
+          <input type="text" id="newMilestoneInput" placeholder="Milestone name and press Enter"/>
+          <button class="btn small" id="addMilestoneBtn">Add</button>
+        </div>
+        ` : `<div class="add-link" id="addMilestoneLink"><span class="plus">+</span>Add a milestone</div>`}
+      </div>
+    </div>
+  `;
+
+  wireDetailEvents(p);
+}
+
+function wireDetailEvents(p){
+  const detail = document.getElementById('detail');
+
+  document.getElementById('closeDetailBtn').onclick = ()=>{ selectedId=null; expandedMilestoneId=null; addMilestoneFormOpen=false; addTaskFormOpenFor=null; addTaskDescOpenFor=null; render(); };
+
+  /* --- vision: status, icon, description --- */
+  const visionView = document.getElementById('visionView');
+  const visionEdit = document.getElementById('visionEdit');
+  const visionViewIcon = document.getElementById('visionViewIcon');
+  const visionViewPill = document.getElementById('visionViewPill');
+  const visionViewDesc = document.getElementById('visionViewDesc');
+  const editStatus = document.getElementById('editStatus');
+  const editIconPicker = document.getElementById('editIconPicker');
+  const editDesc = document.getElementById('editDesc');
+
+  function syncVisionView(){
+    const st = PROJECT_STATUSES[p.status] || PROJECT_STATUSES.planning;
+    visionViewIcon.style.background = st.color;
+    visionViewIcon.innerHTML = iconSVG(p.icon, '#ffffff');
+    visionViewPill.style.background = hexToRgba(st.color, 0.16);
+    visionViewPill.style.color = st.color;
+    visionViewPill.textContent = st.label;
+    visionViewDesc.textContent = p.description ? p.description : 'No vision statement yet.';
+    visionViewDesc.classList.toggle('placeholder', !p.description);
+  }
+
+  document.getElementById('visionEditToggle').addEventListener('click', ()=>{
+    visionView.style.display = 'none';
+    visionEdit.style.display = 'block';
+    editDesc.focus();
+  });
+  document.getElementById('visionEditDone').addEventListener('click', ()=>{
+    syncVisionView();
+    visionEdit.style.display = 'none';
+    visionView.style.display = 'flex';
+  });
+
+  editStatus.innerHTML = Object.entries(PROJECT_STATUSES).map(([k,v])=>`<option value="${k}" ${p.status===k?'selected':''}>${v.label}</option>`).join('');
+
+  function renderEditIconPicker(){
+    const st = PROJECT_STATUSES[p.status] || PROJECT_STATUSES.planning;
+    editIconPicker.innerHTML = DEFAULT_ICON_ORDER.map(name=>{
+      return `<div class="icon-choice ${name===p.icon?'active':''}" data-icon="${name}" style="background:${name===p.icon?st.color:'var(--surface)'};">${iconSVG(name,'#ffffff')}</div>`;
+    }).join('');
+    editIconPicker.querySelectorAll('.icon-choice').forEach(el=>{
+      el.addEventListener('click', async ()=>{
+        p.icon = el.dataset.icon;
+        renderEditIconPicker();
+        const ok = await saveProject(p.id);
+        renderBoard();
+        flashSaveStatus(ok);
+      });
+    });
+  }
+  renderEditIconPicker();
+
+  editStatus.addEventListener('change', async ()=>{
+    p.status = editStatus.value;
+    renderEditIconPicker();
+    const ok = await saveProject(p.id);
+    renderBoard();
+    flashSaveStatus(ok);
+  });
+
+  let descSaveTimer;
+  editDesc.addEventListener('input', ()=>{
+    p.description = editDesc.value;
+    clearTimeout(descSaveTimer);
+    descSaveTimer = setTimeout(async ()=>{
+      const ok = await saveProject(p.id);
+      renderBoard();
+      flashSaveStatus(ok);
+    }, 500);
+  });
+  document.getElementById('deleteProjectBtn').onclick = async ()=>{
+    if(!confirm(`Delete "${p.name}"? This can't be undone.`)) return;
+    projectOrder = projectOrder.filter(x=>x!==selectedId);
+    delete projects[selectedId];
+    await saveIndex();
+    await deleteProjectStorage(p.id);
+    selectedId = null;
+    expandedMilestoneId = null;
+    render();
+  };
+
+  detail.querySelectorAll('.milestone-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const mid = row.dataset.mid;
+      const wasOpen = expandedMilestoneId === mid;
+      expandedMilestoneId = wasOpen ? null : mid;
+      addTaskFormOpenFor = null;
+      addTaskDescOpenFor = null;
+      renderDetail();
+    });
+  });
+  detail.querySelectorAll('.milestone-body').forEach(body=>{
+    body.addEventListener('click', (e)=> e.stopPropagation());
+  });
+
+  async function addMilestone(){
+    const input = document.getElementById('newMilestoneInput');
+    const name = input.value.trim();
+    if(!name) return;
+    p.milestones.push(newMilestoneObj(name));
+    const ok = await saveProject(p.id);
+    render();
+    flashSaveStatus(ok);
+  }
+  const addMilestoneLink = document.getElementById('addMilestoneLink');
+  if(addMilestoneLink){
+    addMilestoneLink.addEventListener('click', ()=>{
+      addMilestoneFormOpen = true;
+      renderDetail();
+      document.getElementById('newMilestoneInput').focus();
+    });
+  }
+  const addMilestoneBtn = document.getElementById('addMilestoneBtn');
+  if(addMilestoneBtn){
+    addMilestoneBtn.addEventListener('click', addMilestone);
+    document.getElementById('newMilestoneInput').addEventListener('keydown', (e)=>{
+      if(e.key==='Enter') addMilestone();
+      if(e.key==='Escape'){ addMilestoneFormOpen = false; renderDetail(); }
+    });
+  }
+
+  detail.querySelectorAll('.milestone-remove-link').forEach(x=>{
+    x.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const mid = e.currentTarget.dataset.mid;
+      const m = p.milestones.find(mm=>mm.id===mid);
+      if(!confirm(`Delete "${m ? m.name : 'this milestone'}"? This can't be undone.`)) return;
+      p.milestones = p.milestones.filter(mm=>mm.id!==mid);
+      if(expandedMilestoneId === mid) expandedMilestoneId = null;
+      const ok = await saveProject(p.id);
+      render();
+      flashSaveStatus(ok);
+    });
+  });
+
+  detail.querySelectorAll('.add-task-link').forEach(link=>{
+    link.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      addTaskFormOpenFor = link.dataset.mid;
+      addTaskDescOpenFor = null;
+      renderDetail();
+      const t = detail.querySelector(`.new-task-title[data-mid="${link.dataset.mid}"]`);
+      if(t) t.focus();
+    });
+  });
+  detail.querySelectorAll('.add-task-desc-toggle').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      addTaskDescOpenFor = btn.dataset.mid;
+      renderDetail();
+      const d = detail.querySelector(`.new-task-desc[data-mid="${btn.dataset.mid}"]`);
+      if(d) d.focus();
+    });
+  });
+
+  async function addTask(mid){
+    const titleInput = detail.querySelector(`.new-task-title[data-mid="${mid}"]`);
+    const descInput = detail.querySelector(`.new-task-desc[data-mid="${mid}"]`);
+    const statusInput = detail.querySelector(`.new-task-status[data-mid="${mid}"]`);
+    const title = titleInput.value.trim();
+    if(!title) return;
+    const m = p.milestones.find(x=>x.id===mid);
+    if(!m) return;
+    m.tasks.push(newTaskObj({
+      title,
+      description: descInput ? descInput.value.trim() : '',
+      status: statusInput.value
+    }));
+    addTaskDescOpenFor = null;
+    const ok = await saveProject(p.id);
+    render();
+    flashSaveStatus(ok);
+  }
+  detail.querySelectorAll('.add-task-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> addTask(btn.dataset.mid));
+  });
+  detail.querySelectorAll('.new-task-title').forEach(input=>{
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter') addTask(input.dataset.mid);
+      if(e.key==='Escape'){ addTaskFormOpenFor = null; renderDetail(); }
+    });
+  });
+
+  detail.querySelectorAll('.task-status-btn').forEach(dot=>{
+    dot.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const mid = dot.dataset.mid, tid = dot.dataset.tid;
+      const m = p.milestones.find(x=>x.id===mid);
+      const t = m && m.tasks.find(x=>x.id===tid);
+      if(!t) return;
+      const idx = TASK_STATUS_CYCLE.indexOf(t.status);
+      t.status = TASK_STATUS_CYCLE[(idx + 1) % TASK_STATUS_CYCLE.length];
+      const ok = await saveProject(p.id);
+      render();
+      flashSaveStatus(ok);
+    });
+  });
+  detail.querySelectorAll('.task-row-remove').forEach(x=>{
+    x.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const mid = e.currentTarget.dataset.mid, tid = e.currentTarget.dataset.tid;
+      const m = p.milestones.find(mm=>mm.id===mid);
+      if(m) m.tasks = m.tasks.filter(t=>t.id!==tid);
+      const ok = await saveProject(p.id);
+      render();
+      flashSaveStatus(ok);
+    });
+  });
+}
+
+/* ---------- new project form ---------- */
+const newBtn = document.getElementById('newProjectBtn');
+const form = document.getElementById('newProjectForm');
+const nameInput = document.getElementById('newProjectName');
+const descInput = document.getElementById('newProjectDesc');
+const statusSelect = document.getElementById('newProjectStatus');
+const iconPicker = document.getElementById('newProjectIconPicker');
+let pickedIcon = DEFAULT_ICON_ORDER[0];
+
+statusSelect.innerHTML = Object.entries(PROJECT_STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+
+function renderIconPicker(){
+  iconPicker.innerHTML = DEFAULT_ICON_ORDER.map(name=>{
+    const st = PROJECT_STATUSES[statusSelect.value] || PROJECT_STATUSES.planning;
+    return `<div class="icon-choice ${name===pickedIcon?'active':''}" data-icon="${name}" style="background:${name===pickedIcon?st.color:'var(--surface)'};">${iconSVG(name,'#ffffff')}</div>`;
+  }).join('');
+  iconPicker.querySelectorAll('.icon-choice').forEach(el=>{
+    el.addEventListener('click', ()=>{ pickedIcon = el.dataset.icon; renderIconPicker(); });
+  });
+}
+renderIconPicker();
+statusSelect.addEventListener('change', renderIconPicker);
+
+function resetProjectForm(){
+  nameInput.value=''; descInput.value=''; statusSelect.value='planning'; pickedIcon = DEFAULT_ICON_ORDER[0];
+  renderIconPicker();
+}
+
+newBtn.addEventListener('click', ()=>{
+  form.classList.add('show');
+  nameInput.focus();
+});
+document.getElementById('cancelProjectBtn').addEventListener('click', ()=>{
+  form.classList.remove('show');
+  resetProjectForm();
+});
+async function createProject(){
+  const name = nameInput.value.trim();
+  if(!name) return;
+  const p = newProjectObj(name, { description: descInput.value.trim(), status: statusSelect.value, icon: pickedIcon });
+  projects[p.id] = p;
+  projectOrder.push(p.id);
+  await saveIndex();
+  await saveProject(p.id);
+  resetProjectForm();
+  form.classList.remove('show');
+  selectedId = p.id;
+  expandedMilestoneId = null;
+  render();
+  setTimeout(()=>document.getElementById('detail').scrollIntoView({behavior:'smooth', block:'start'}), 50);
+}
+document.getElementById('createProjectBtn').addEventListener('click', createProject);
+nameInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') createProject(); });
+
+function showApp(){
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  loadAll();
+}
+function showGate(message){
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'flex';
+  if(message) document.getElementById('gateMessage').textContent = message;
+}
+
+// This board shares its login with the rest of RFLABS' internal tools —
+// if there's no valid session (established by logging in at /apps/),
+// send the person there instead of showing a separate login form here.
+const boardSession = loadSession();
+if(!boardSession || !boardSession.access_token){
+  showGate();
+  window.location.href = '/apps/';
+} else {
+  showApp();
+}
+</script>
+
+</body>
+</html>

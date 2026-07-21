@@ -11,3 +11,13 @@
   from = "/apps/"
   to = "/apps/index.html"
   status = 200
+
+[[redirects]]
+  from = "/tools/board/"
+  to = "/tools/board/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/tools/books/"
+  to = "/tools/books/index.html"
+  status = 200

@@ -31,3 +31,6 @@ deno.lock
 *.sln
 *.sw?
 .netlify/
+.env
+
+.local-data/

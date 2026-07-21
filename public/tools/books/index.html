@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RFLABS BOOKS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <nav class="sidenav">
+    <a class="sidenav-brand" href="/apps/" title="Back to Apps">
+      <svg class="ledger-mark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11l9-8 9 8"/>
+        <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/>
+      </svg>
+      <span class="sidenav-brand-text">RFLABS BOOKS</span>
+    </a>
+    <button class="sidenav-item active" data-view="intake" id="navIntake">
+      <svg class="sidenav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 4v13"/>
+        <path d="m7 9 5-5 5 5"/>
+        <path d="M4 20h16"/>
+      </svg> Bill Intake
+    </button>
+    <button class="sidenav-item" data-view="payables" id="navPayables">
+      <svg class="sidenav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="3" width="12" height="18" rx="1.5"/>
+        <path d="M8 6v12"/>
+        <path d="M10.5 8H6.8a1.8 1.8 0 0 0 0 3.6h2.4a1.8 1.8 0 0 1 0 3.6H6"/>
+        <path d="M16 12h5"/>
+        <path d="M18.5 9.5 21 12l-2.5 2.5"/>
+      </svg> Outstanding Payables
+    </button>
+    <button class="sidenav-item" data-view="receivables" id="navReceivables">
+      <svg class="sidenav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="10" y="3" width="12" height="18" rx="1.5"/>
+        <path d="M16 6v12"/>
+        <path d="M18.5 8h-3.7a1.8 1.8 0 0 0 0 3.6h2.4a1.8 1.8 0 0 1 0 3.6H14"/>
+        <path d="M2 12h5"/>
+        <path d="M4.5 9.5 7 12l-2.5 2.5"/>
+      </svg> Outstanding Receivables
+    </button>
+    <button class="sidenav-item" data-view="topitems" id="navTopItems">
+      <svg class="sidenav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg> Top Items
+    </button>
+    <button class="sidenav-item" data-view="turnover" id="navTurnover">
+      <svg class="sidenav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 7 13.5 15.5 8.5 10.5 2 17"/>
+        <path d="M16 7h6v6"/>
+      </svg> Turnover
+    </button>
+    <button class="sidenav-item" data-view="lapsed" id="navLapsed">
+      <svg class="sidenav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3 3"/>
+      </svg> Lapsed Clients
+    </button>
+  </nav>
+
+  <main class="main-area">
+
+  <!-- ============ VIEW: BILL INTAKE ============ -->
+  <div class="view active" id="view-intake">
+  <div class="sheet">
+
+    <header class="masthead">
+      <div class="masthead-left">
+        <svg class="ledger-mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 4v13"/>
+          <path d="m7 9 5-5 5 5"/>
+          <path d="M4 20h16"/>
+        </svg>
+        <div>
+          <h1>Bill Intake</h1>
+          <p class="subtitle">Vendor bill → Zoho Inventory, reviewed by you before it's sent</p>
+        </div>
+      </div>
+      <div class="masthead-right" id="statusBadge"></div>
+    </header>
+
+    <!-- STEP 1: Upload -->
+    <section id="step-upload" class="step active">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="application/pdf,image/*" hidden />
+        <div class="dropzone-inner">
+          <div class="tray-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40">
+              <path d="M2 26 L14 26 L20 34 L44 34 L50 26 L62 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="2" y="4" width="60" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <p class="dropzone-title">Drop a vendor bill here</p>
+          <p class="dropzone-sub">PDF or photo — click to browse instead</p>
+        </div>
+      </div>
+      <p class="file-picked" id="filePicked"></p>
+      <button class="btn btn-primary" id="extractBtn" disabled>Read bill</button>
+      <p class="hint">Nothing is saved anywhere except the bill you confirm inside Zoho.</p>
+    </section>
+
+    <!-- STEP 2: Loading -->
+    <section id="step-loading" class="step">
+      <div class="loading-block">
+        <div class="stamp-spin" aria-hidden="true"></div>
+        <p id="loadingLabel">Reading the bill…</p>
+      </div>
+    </section>
+
+    <!-- STEP 3: Review -->
+    <section id="step-review" class="step">
+      <div class="review-head">
+        <h2>Review before sending</h2>
+        <p class="hint">Check every field. Nothing reaches Zoho until you confirm.</p>
+      </div>
+
+      <div id="duplicateWarning"></div>
+
+      <div class="field-grid">
+        <label>Vendor name
+          <input type="text" id="f_vendor_name" />
+        </label>
+        <label>Vendor GSTIN
+          <input type="text" id="f_vendor_gstin" />
+        </label>
+        <label>Invoice number
+          <input type="text" id="f_invoice_number" />
+        </label>
+        <label>Invoice date
+          <input type="date" id="f_invoice_date" />
+        </label>
+      </div>
+
+      <table class="items-table" id="itemsTable">
+        <thead>
+          <tr>
+            <th class="col-desc">Description</th>
+            <th class="col-hsn">HSN/SAC</th>
+            <th class="col-qty">Qty</th>
+            <th class="col-unit">Unit</th>
+            <th class="col-rate">Rate</th>
+            <th class="col-amount">Amount</th>
+            <th class="col-del"></th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+      <button class="btn btn-ghost btn-small" id="addRowBtn" type="button">+ Add line</button>
+
+      <div class="totals-block">
+        <label>CGST %
+          <input type="number" step="0.01" id="f_cgst_percent" />
+        </label>
+        <label>CGST amount
+          <input type="number" step="0.01" id="f_cgst_amount" />
+        </label>
+        <label>SGST %
+          <input type="number" step="0.01" id="f_sgst_percent" />
+        </label>
+        <label>SGST amount
+          <input type="number" step="0.01" id="f_sgst_amount" />
+        </label>
+        <label>Round off
+          <input type="number" step="0.01" id="f_round_off" />
+        </label>
+        <label>Total
+          <input type="number" step="0.01" id="f_total" />
+        </label>
+      </div>
+
+      <div class="review-actions">
+        <button class="btn btn-ghost" id="cancelBtn">Start over</button>
+        <button class="btn btn-primary" id="confirmBtn">Confirm & send to Zoho</button>
+      </div>
+    </section>
+
+    <!-- STEP 4: Result -->
+    <section id="step-result" class="step">
+      <div class="result-block" id="resultBlock"></div>
+      <button class="btn btn-primary" id="newBillBtn">Enter another bill</button>
+    </section>
+
+  </div>
+  </div>
+
+  <!-- ============ VIEW: OUTSTANDING PAYABLES ============ -->
+  <div class="view" id="view-payables">
+  <div class="sheet">
+
+    <header class="masthead">
+      <div class="masthead-left">
+        <svg class="ledger-mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="18" rx="1.5"/>
+          <path d="M8 6v12"/>
+          <path d="M10.5 8H6.8a1.8 1.8 0 0 0 0 3.6h2.4a1.8 1.8 0 0 1 0 3.6H6"/>
+          <path d="M16 12h5"/>
+          <path d="M18.5 9.5 21 12l-2.5 2.5"/>
+        </svg>
+        <div>
+          <h1>Outstanding Payables</h1>
+          <p class="subtitle">Overdue vendor bills, pulled live from Zoho</p>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-small no-print" id="refreshPayablesBtn" style="margin-top:0;">Refresh</button>
+    </header>
+
+    <div id="payablesContent">
+      <p class="hint">Loading overdue bills…</p>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- ============ VIEW: OUTSTANDING RECEIVABLES ============ -->
+  <div class="view" id="view-receivables">
+  <div class="sheet">
+
+    <header class="masthead">
+      <div class="masthead-left">
+        <svg class="ledger-mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="10" y="3" width="12" height="18" rx="1.5"/>
+          <path d="M16 6v12"/>
+          <path d="M18.5 8h-3.7a1.8 1.8 0 0 0 0 3.6h2.4a1.8 1.8 0 0 1 0 3.6H14"/>
+          <path d="M2 12h5"/>
+          <path d="M4.5 9.5 7 12l-2.5 2.5"/>
+        </svg>
+        <div>
+          <h1>Outstanding Receivables</h1>
+          <p class="subtitle">Overdue customer invoices, pulled live from Zoho</p>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-small no-print" id="refreshReceivablesBtn" style="margin-top:0;">Refresh</button>
+      <button class="btn btn-ghost btn-small no-print" id="printReceivablesBtn" style="margin-top:0;">Save as PDF</button>
+    </header>
+
+    <p class="print-only" id="receivablesPrintGeneratedAt"></p>
+
+    <div id="receivablesContent">
+      <p class="hint">Loading overdue invoices…</p>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- ============ VIEW: TOP ITEMS ============ -->
+  <div class="view" id="view-topitems">
+  <div class="sheet">
+
+    <header class="masthead">
+      <div class="masthead-left">
+        <svg class="ledger-mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <div>
+          <h1>Top Items</h1>
+          <p class="subtitle">Best-selling items by quantity, pulled live from Zoho invoices</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="field-grid" style="grid-template-columns: 1fr auto; align-items: end; margin-bottom: 20px;">
+      <label>Date range
+        <select id="topItemsRange">
+          <option value="this_month">This month</option>
+          <option value="last_30">Last 30 days</option>
+          <option value="this_quarter">This quarter</option>
+          <option value="this_year">This year</option>
+        </select>
+      </label>
+      <button class="btn btn-ghost btn-small" id="runTopItemsBtn" style="margin-top:0;">Run</button>
+    </div>
+
+    <div id="topItemsContent">
+      <p class="hint">Pick a range and click Run — longer ranges take longer since each invoice is read individually.</p>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- ============ VIEW: TURNOVER ============ -->
+  <div class="view" id="view-turnover">
+  <div class="sheet">
+
+    <header class="masthead">
+      <div class="masthead-left">
+        <svg class="ledger-mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 7 13.5 15.5 8.5 10.5 2 17"/>
+          <path d="M16 7h6v6"/>
+        </svg>
+        <div>
+          <h1>Turnover</h1>
+          <p class="subtitle">Monthly sales turnover, pulled live from Zoho invoices</p>
+        </div>
+      </div>
+    </header>
+
+    <div id="turnoverContent">
+      <p class="hint">Loading turnover…</p>
+    </div>
+    <div class="chart-tooltip" id="chartTooltip" style="display:none;"></div>
+
+  </div>
+  </div>
+
+  <!-- ============ VIEW: LAPSED CLIENTS ============ -->
+  <div class="view" id="view-lapsed">
+  <div class="sheet">
+
+    <header class="masthead">
+      <div class="masthead-left">
+        <svg class="ledger-mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 3"/>
+        </svg>
+        <div>
+          <h1>Lapsed Clients</h1>
+          <p class="subtitle">Stretch film customers (HSN 39201012) who haven't ordered in over 30 days</p>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-small no-print" id="printLapsedBtn" style="margin-top:0;">Save as PDF</button>
+    </header>
+
+    <p class="print-only" id="lapsedPrintGeneratedAt"></p>
+
+    <div id="lapsedContent">
+      <p class="hint">Loading…</p>
+    </div>
+
+  </div>
+  </div>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
