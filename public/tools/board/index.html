@@ -172,10 +172,22 @@
     border:1px solid var(--hairline);
     padding:20px;
     cursor:pointer;
-    transition: border-color .15s ease, transform .1s ease, background .15s ease;
+    transition: border-color .15s ease, transform .18s ease, background .15s ease, box-shadow .18s ease;
     position:relative;
+    overflow:hidden;
   }
-  .card:hover{border-color:var(--brass-dim);}
+  .card::before{
+    /* left status stripe, colored per-project via inline --stripe-color */
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:var(--stripe-color, var(--hairline));
+  }
+  .card::after{
+    /* faint diagonal scan-line texture in the corner, echoes the logo mark */
+    content:""; position:absolute; top:-40px; right:-40px; width:120px; height:120px;
+    background:repeating-linear-gradient(-55deg, rgba(127,216,142,0.08) 0 3px, transparent 3px 11px);
+    pointer-events:none;
+  }
+  .card:hover{border-color:var(--brass-dim); transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,0.28);}
   .card:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
   .card.selected{border-color:var(--brass); background:var(--surface-raised);}
   .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
@@ -185,6 +197,15 @@
     display:flex; align-items:center; justify-content:center;
   }
   .icon-square svg{ width:22px; height:22px; }
+  /* signal-strength status indicator, replaces the old text-only status pill on cards */
+  .signal-box{ display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0; }
+  .bars{ display:flex; align-items:flex-end; gap:3px; height:16px; }
+  .bars i{ width:4px; border-radius:1px; background:var(--hairline); display:block; }
+  .bars i:nth-child(1){height:35%;}
+  .bars i:nth-child(2){height:55%;}
+  .bars i:nth-child(3){height:75%;}
+  .bars i:nth-child(4){height:100%;}
+  .signal-label{ font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
   .ring{flex-shrink:0;}
   .card-name{
     font-family:var(--font-display);
@@ -213,16 +234,18 @@
     border-radius:20px;
     margin-top:14px;
   }
+  .meta-row{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+    margin-top:14px; border-top:1px dashed var(--hairline); padding-top:10px;
+  }
   .milestone-count{
-    font-size:11px; color:var(--paper-dim); margin-top:12px;
+    font-size:11px; color:var(--paper-dim);
   }
   .next-action{
     font-size:12px;
     color:var(--paper-dim);
-    margin-top:12px;
     line-height:1.4;
-    border-top:1px dashed var(--hairline);
-    padding-top:10px;
+    text-align:right;
   }
   .next-action .label{color:var(--brass); text-transform:uppercase; font-size:10px; letter-spacing:1px; display:block; margin-bottom:3px;}
   .next-action .mname{color:var(--brass);}
@@ -257,12 +280,52 @@
     font-size:26px; margin:0;
   }
   .detail-actions{display:flex; gap:8px; align-items:flex-start;}
+  /* pill-shaped Close / Delete buttons, distinct at-rest colors so Delete reads as destructive without hovering */
+  .detail-actions .btn{ border-radius:999px; padding:9px 18px; }
+  .detail-actions .btn.danger{ color:var(--rust); border-color:rgba(226,114,91,.5); }
+  .detail-actions .btn.danger:hover{ background:var(--rust); border-color:var(--rust); color:var(--paper); }
 
   .section-title{
     font-size:11px; letter-spacing:2px; text-transform:uppercase;
     color:var(--brass); margin: 22px 0 10px;
   }
   .section-title:first-child{margin-top:0;}
+
+  /* milestone view toggle */
+  .view-toggle{ display:flex; gap:8px; margin:0 0 16px; }
+  .view-toggle-btn{
+    padding:7px 15px; border-radius:999px; border:1px solid var(--hairline);
+    background:transparent; color:var(--paper-dim); font-family:var(--font-display);
+    font-size:12px; font-weight:600; cursor:pointer; transition:all .15s ease;
+  }
+  .view-toggle-btn:hover{ border-color:var(--brass-dim); color:var(--paper); }
+  .view-toggle-btn.active{ background:var(--brass); color:var(--ink); border-color:var(--brass); }
+
+  /* stat strip */
+  .stat-strip{
+    display:flex; gap:1px; background:var(--hairline);
+    border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
+    margin-bottom:22px;
+  }
+  .stat-strip .stat{ flex:1; background:var(--ink); padding:14px 18px; }
+  .stat-strip .stat-label{
+    font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--paper-dim); margin-bottom:6px;
+  }
+  .stat-strip .stat-val{ font-size:19px; font-weight:800; color:var(--paper); }
+  .stat-strip .stat-val.mint{ color:var(--brass); font-size:14px; font-weight:700; line-height:1.3; }
+
+  /* timeline milestone layout */
+  .milestones-list.timeline-view{ border-top:none; padding-left:22px; }
+  .milestones-list.timeline-view .milestone-row{ position:relative; border-bottom:none; padding:14px 4px 14px 0; }
+  .milestones-list.timeline-view .milestone-row::before{
+    content:""; position:absolute; left:-22px; top:18px; width:10px; height:10px; border-radius:50%;
+    background:rgba(127,216,142,0.14); border:2px solid var(--brass);
+  }
+  .milestones-list.timeline-view .milestone-row::after{
+    content:""; position:absolute; left:-18px; top:28px; bottom:-14px; width:2px; background:var(--hairline);
+  }
+  .milestones-list.timeline-view .milestone-row.last-milestone::after{ display:none; }
+  .milestones-list.timeline-view .milestone-body{ margin-left:0; }
 
   .add-row{
     display:flex; gap:8px;
@@ -487,6 +550,14 @@ function hexToRgba(hex, alpha){
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+/* signal-strength level (1-4 bars filled) per status — adjust these if the mapping should feel different */
+const SIGNAL_LEVELS = { blocked:1, planning:1, atrisk:2, ontrack:3, ahead:4 };
+function signalBarsHTML(statusKey, color){
+  const level = SIGNAL_LEVELS[statusKey] ?? 1;
+  const bars = [1,2,3,4].map(i => `<i${i<=level ? ` style="background:${color};"` : ''}></i>`).join('');
+  return `<div class="bars">${bars}</div>`;
+}
+
 /* ---------- storage adapter: talks to the Netlify Function, authenticated ---------- */
 /* ---------- via the same session /apps/ already established               ---------- */
 const BOARD_API = '/.netlify/functions/board-data';
@@ -554,6 +625,10 @@ let expandedMilestoneId = null;
 let addMilestoneFormOpen = false;
 let addTaskFormOpenFor = null;
 let addTaskDescOpenFor = null;
+
+/* milestone section layout: 'statStrip' (default) or 'timeline', remembered across sessions */
+const MILESTONE_VIEW_KEY = 'rflabs_board_milestone_view';
+let milestoneViewStyle = localStorage.getItem(MILESTONE_VIEW_KEY) === 'timeline' ? 'timeline' : 'statStrip';
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function escapeHtml(s){
@@ -652,6 +727,9 @@ function nextAction(p){
   }
   return null;
 }
+function completedMilestonesCount(p){
+  return p.milestones.filter(m => m.tasks.length > 0 && m.tasks.every(t => t.status === 'done')).length;
+}
 
 /* ---------- storage ---------- */
 async function loadAll(){
@@ -731,18 +809,23 @@ function renderBoard(){
     const na = nextAction(p);
     const st = PROJECT_STATUSES[p.status] || PROJECT_STATUSES.planning;
     return `
-      <div class="card ${id===selectedId?'selected':''}" tabindex="0" data-id="${id}">
+      <div class="card ${id===selectedId?'selected':''}" style="--stripe-color:${st.color};" tabindex="0" data-id="${id}">
         <div class="card-top">
-          <div class="icon-square" style="background:${st.color};">${iconSVG(p.icon, '#ffffff')}</div>
+          <div class="icon-square" style="background:${hexToRgba(st.color,0.14)}; border:1.5px solid ${hexToRgba(st.color,0.4)};">${iconSVG(p.icon, st.color)}</div>
+          <div class="signal-box">
+            ${signalBarsHTML(p.status, st.color)}
+            <div class="signal-label" style="color:${st.color};">${st.label}</div>
+          </div>
         </div>
         <div class="card-name">${escapeHtml(p.name)}</div>
         <div class="card-desc ${p.description ? '' : 'placeholder'}">${p.description ? escapeHtml(p.description) : 'No vision statement yet.'}</div>
-        <div class="status-pill" style="background:${hexToRgba(st.color,0.16)}; color:${st.color};">${st.label}</div>
-        <div class="milestone-count">${p.milestones.length} milestone${p.milestones.length===1?'':'s'}</div>
-        <div class="next-action">
-          <span class="label">Next up</span>
-          ${na ? `<span class="mname">${escapeHtml(na.milestone)}:</span> ${escapeHtml(na.task)}`
-               : (p.milestones.length ? 'All tasks complete' : 'No milestones yet')}
+        <div class="meta-row">
+          <div class="milestone-count">${p.milestones.length} milestone${p.milestones.length===1?'':'s'}</div>
+          <div class="next-action">
+            <span class="label">Next up</span>
+            ${na ? `<span class="mname">${escapeHtml(na.milestone)}:</span> ${escapeHtml(na.task)}`
+                 : (p.milestones.length ? 'All tasks complete' : 'No milestones yet')}
+          </div>
         </div>
       </div>`;
   }).join('');
@@ -794,10 +877,10 @@ function renderDetail(){
 
       <div class="section-title">Vision</div>
       <div class="vision-view" id="visionView">
-        <div class="icon-square sm" id="visionViewIcon" style="background:${(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color};">${iconSVG(p.icon,'#ffffff')}</div>
+        <div class="icon-square sm" id="visionViewIcon" style="background:${hexToRgba((PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color,0.12)}; border:1.5px solid ${hexToRgba((PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color,0.45)};">${iconSVG(p.icon,(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color)}</div>
         <div class="vision-view-text">
+          <div class="vision-view-desc ${p.description ? '' : 'placeholder'}" id="visionViewDesc" style="margin-top:0; margin-bottom:8px;">${p.description ? escapeHtml(p.description) : 'No vision statement yet.'}</div>
           <span class="status-pill" id="visionViewPill" style="background:${hexToRgba((PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color,0.16)}; color:${(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).color};">${(PROJECT_STATUSES[p.status]||PROJECT_STATUSES.planning).label}</span>
-          <div class="vision-view-desc ${p.description ? '' : 'placeholder'}" id="visionViewDesc">${p.description ? escapeHtml(p.description) : 'No vision statement yet.'}</div>
         </div>
         <button class="icon-btn" id="visionEditToggle" title="Edit vision" aria-label="Edit vision">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -815,11 +898,29 @@ function renderDetail(){
       </div>
 
       <div class="section-title">Milestones</div>
-      ${p.milestones.length ? `<div class="milestones-list">` + p.milestones.map(m=>{
+
+      <div class="view-toggle">
+        <button type="button" class="view-toggle-btn ${milestoneViewStyle==='statStrip'?'active':''}" data-view="statStrip">Stat Strip</button>
+        <button type="button" class="view-toggle-btn ${milestoneViewStyle==='timeline'?'active':''}" data-view="timeline">Timeline</button>
+      </div>
+
+      ${milestoneViewStyle === 'statStrip' ? (()=>{
+        const na = nextAction(p);
+        const nextUpText = na ? `${na.milestone}: ${na.task}` : (p.milestones.length ? 'All tasks complete' : 'No milestones yet');
+        return `
+        <div class="stat-strip">
+          <div class="stat"><div class="stat-label">Milestones</div><div class="stat-val">${p.milestones.length}</div></div>
+          <div class="stat"><div class="stat-label">Completed</div><div class="stat-val">${completedMilestonesCount(p)}</div></div>
+          <div class="stat"><div class="stat-label">Next Up</div><div class="stat-val mint">${escapeHtml(nextUpText)}</div></div>
+        </div>`;
+      })() : ''}
+
+      ${p.milestones.length ? `<div class="milestones-list ${milestoneViewStyle==='timeline'?'timeline-view':''}">` + p.milestones.map((m,idx)=>{
         const isOpen = m.id === expandedMilestoneId;
+        const isLast = idx === p.milestones.length - 1;
         const doneCount = m.tasks.filter(t=>t.status==='done').length;
         return `
-        <div class="milestone-row ${isOpen?'expanded':''}" data-mid="${m.id}">
+        <div class="milestone-row ${isOpen?'expanded':''} ${isLast?'last-milestone':''}" data-mid="${m.id}">
           <span class="milestone-caret">▶</span>
           <span class="milestone-row-name">${escapeHtml(m.name)}</span>
           <span class="milestone-row-count">${doneCount}/${m.tasks.length}</span>
@@ -878,6 +979,14 @@ function wireDetailEvents(p){
 
   document.getElementById('closeDetailBtn').onclick = ()=>{ selectedId=null; expandedMilestoneId=null; addMilestoneFormOpen=false; addTaskFormOpenFor=null; addTaskDescOpenFor=null; render(); };
 
+  detail.querySelectorAll('.view-toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      milestoneViewStyle = btn.dataset.view === 'timeline' ? 'timeline' : 'statStrip';
+      localStorage.setItem(MILESTONE_VIEW_KEY, milestoneViewStyle);
+      renderDetail();
+    });
+  });
+
   /* --- vision: status, icon, description --- */
   const visionView = document.getElementById('visionView');
   const visionEdit = document.getElementById('visionEdit');
@@ -890,8 +999,9 @@ function wireDetailEvents(p){
 
   function syncVisionView(){
     const st = PROJECT_STATUSES[p.status] || PROJECT_STATUSES.planning;
-    visionViewIcon.style.background = st.color;
-    visionViewIcon.innerHTML = iconSVG(p.icon, '#ffffff');
+    visionViewIcon.style.background = hexToRgba(st.color, 0.12);
+    visionViewIcon.style.border = '1.5px solid ' + hexToRgba(st.color, 0.45);
+    visionViewIcon.innerHTML = iconSVG(p.icon, st.color);
     visionViewPill.style.background = hexToRgba(st.color, 0.16);
     visionViewPill.style.color = st.color;
     visionViewPill.textContent = st.label;
