@@ -190,6 +190,16 @@
   .card:hover{border-color:var(--brass-dim); transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,0.28);}
   .card:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
   .card.selected{border-color:var(--brass); background:var(--surface-raised);}
+  .card.dragging{ opacity:.35; }
+  .card.drop-target{ border-color:var(--brass); box-shadow:0 0 0 2px rgba(127,216,142,0.3); }
+  .drag-handle{
+    position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center; color:var(--paper-dim);
+    opacity:0; transition:opacity .15s ease; cursor:grab; background:rgba(0,0,0,0.15); z-index:1;
+  }
+  .card:hover .drag-handle{ opacity:.55; }
+  .drag-handle:hover{ opacity:1 !important; color:var(--paper); }
+  .drag-handle svg{ width:14px; height:14px; }
   .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
   .icon-square{
     width:44px; height:44px; flex-shrink:0;
@@ -327,6 +337,64 @@
   .milestones-list.timeline-view .milestone-row.last-milestone::after{ display:none; }
   .milestones-list.timeline-view .milestone-body{ margin-left:0; }
 
+  /* ---------- To-Do view ---------- */
+  .todo-stage{ max-width:680px; }
+  .todo-progress-line{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .todo-progress-text{ font-size:13px; color:var(--paper-dim); }
+  .todo-progress-text b{ color:var(--brass); font-weight:800; }
+  .todo-filter-row{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  .todo-box{
+    background:var(--surface); border:1px solid var(--hairline); border-radius:10px;
+    padding:16px 18px; margin-bottom:12px;
+  }
+  .todo-composer-row{ display:flex; }
+  .todo-composer-input{
+    flex:1; background:transparent; border:none; outline:none; color:var(--paper); font-size:15px;
+    font-family:var(--font-display); padding:6px 2px;
+  }
+  .todo-composer-input::placeholder{ color:var(--paper-dim); opacity:.7; }
+  .todo-link-panel{
+    display:flex; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid var(--hairline);
+    flex-wrap:wrap; align-items:flex-end;
+  }
+  .todo-select-wrap{ flex:1; min-width:180px; }
+  .todo-select-label{ font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--sage); margin-bottom:6px; }
+  .todo-select{
+    width:100%; background:var(--ink); border:1px solid var(--hairline); color:var(--paper);
+    border-radius:7px; padding:9px 10px; font-size:13px; font-family:var(--font-display);
+  }
+  .todo-select:disabled{ opacity:.4; cursor:not-allowed; }
+  .todo-hint{ font-size:11px; color:var(--paper-dim); margin-top:10px; }
+  .todo-hint.new-milestone{ color:var(--sage); opacity:.95; }
+  .todo-add-btn{ border-radius:999px; padding:8px 19px; }
+  .todo-add-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .todo-add-btn:disabled:hover{ background:transparent; color:var(--brass); }
+
+  .todo-task{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .todo-task.removing{ opacity:0; transform:translateX(12px); }
+  .todo-task-text{ font-size:15px; color:var(--paper); line-height:1.4; }
+  .todo-badge{
+    display:inline-flex; align-items:center; margin-top:8px; padding:4px 10px; border-radius:999px;
+    background:var(--brass); font-size:11px; color:var(--ink); font-weight:700;
+  }
+  .todo-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .todo-complete-btn{
+    background:transparent; color:var(--brass); border:1.5px solid var(--brass-dim);
+    border-radius:999px; padding:8px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-display);
+  }
+  .todo-complete-btn:hover{ background:rgba(127,216,142,.12); }
+  .todo-delete-btn{
+    width:30px; height:30px; border-radius:7px; border:none; background:none; display:flex; align-items:center; justify-content:center;
+    color:var(--paper-dim); opacity:.5; cursor:pointer; flex-shrink:0;
+  }
+  .todo-delete-btn:hover{ opacity:1; background:rgba(226,114,91,.12); color:var(--rust); }
+  .todo-delete-btn svg{ width:16px; height:16px; }
+  .todo-empty{ text-align:center; padding:40px 20px; color:var(--paper-dim); opacity:.7; font-size:14px; font-style:italic; }
+
   .add-row{
     display:flex; gap:8px;
   }
@@ -431,6 +499,17 @@
     padding:8px 10px; font-family:var(--font-display); font-size:12px; border-radius:2px;
   }
   .inline-add-row input:focus-visible, .inline-add-row select:focus-visible{ outline:2px solid var(--brass); }
+  /* bare checkbox in the add-task row — no label text, just the check mark (tooltip explains it on hover) */
+  .todo-toggle-row{ display:flex; align-items:center; cursor:pointer; user-select:none; flex-shrink:0; }
+  .todo-toggle-row input{ display:none; }
+  .todo-toggle-box{
+    width:18px; height:18px; border-radius:5px; border:1.5px solid var(--hairline);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s ease;
+  }
+  .todo-toggle-box svg{ width:11px; height:11px; color:var(--ink); opacity:0; transition:opacity .1s ease; }
+  .todo-toggle-row input:checked ~ .todo-toggle-box{ background:var(--brass); border-color:var(--brass); }
+  .todo-toggle-row input:checked ~ .todo-toggle-box svg{ opacity:1; }
+  .todo-toggle-row:hover .todo-toggle-box{ border-color:var(--brass-dim); }
   .inline-add-desc-toggle{
     font-size:11px; color:var(--paper-dim); cursor:pointer;
     text-decoration:underline; text-underline-offset:2px;
@@ -473,10 +552,15 @@
             <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/>
           </svg>
         </a>
-        Project Board
+        <span id="pageTitle">Project Board</span>
       </h1>
     </div>
     <button class="btn" id="newProjectBtn">+ New Project</button>
+  </div>
+
+  <div class="view-toggle" id="mainTabRow">
+    <button type="button" class="view-toggle-btn active" data-view="board">Board</button>
+    <button type="button" class="view-toggle-btn" data-view="todo">To-Do</button>
   </div>
 
   <div id="newProjectForm">
@@ -495,9 +579,12 @@
     </div>
   </div>
 
-  <div id="board"></div>
+  <div id="boardView">
+    <div id="board"></div>
+    <div id="detail"></div>
+  </div>
 
-  <div id="detail"></div>
+  <div id="todoView" style="display:none;"></div>
 
 </div>
 </div>
@@ -622,6 +709,10 @@ let projects = {};
 let projectOrder = [];
 let selectedId = null;
 let expandedMilestoneId = null;
+let currentView = 'board'; // 'board' | 'todo' — resets to board on each page load, not persisted
+let todoFilter = 'all'; // 'all' or a project id
+let draggedBoardCard = null; // card DOM node currently being dragged, or null
+let lastDragOverCard = null, lastDragOverBefore = null; // avoid redundant reorder work on every dragover tick
 let addMilestoneFormOpen = false;
 let addTaskFormOpenFor = null;
 let addTaskDescOpenFor = null;
@@ -662,8 +753,8 @@ function todayISO(){
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function newTaskObj({title, description, status}){
-  return { id: uid(), title, description: description||'', status: status||'todo', date: todayISO() };
+function newTaskObj({title, description, status, showInTodo}){
+  return { id: uid(), title, description: description||'', status: status||'todo', date: todayISO(), showInTodo: !!showInTodo };
 }
 
 // migrate any older data shapes into the current structure
@@ -730,6 +821,24 @@ function nextAction(p){
 function completedMilestonesCount(p){
   return p.milestones.filter(m => m.tasks.length > 0 && m.tasks.every(t => t.status === 'done')).length;
 }
+/* live query — not a stored list. Any task anywhere with showInTodo=true and not done shows up here.
+   Completing or deleting it in the project view removes it from here automatically, and re-opening
+   it (cycling status off 'done') brings it back — nothing is ever duplicated or cached separately. */
+function getTodoTasks(){
+  const out = [];
+  projectOrder.forEach(pid=>{
+    const p = projects[pid];
+    if(!p) return;
+    p.milestones.forEach(m=>{
+      m.tasks.forEach(t=>{
+        if(t.showInTodo && t.status !== 'done'){
+          out.push({ projectId: pid, projectName: p.name, milestoneId: m.id, task: t });
+        }
+      });
+    });
+  });
+  return out;
+}
 
 /* ---------- storage ---------- */
 async function loadAll(){
@@ -752,8 +861,13 @@ async function loadAll(){
   render();
 }
 async function saveIndex(){
-  try{ await window.storage.set('project-ids', JSON.stringify(projectOrder), false); }
-  catch(e){ console.error('index save failed', e); }
+  try{
+    const result = await window.storage.set('project-ids', JSON.stringify(projectOrder), false);
+    return !!result;
+  }catch(e){
+    console.error('index save failed', e);
+    return false;
+  }
 }
 async function saveProject(id){
   try{
@@ -793,8 +907,15 @@ function ringSVG(pct, size=44){
 
 /* ---------- render ---------- */
 function render(){
+  const isBoard = currentView === 'board';
+  document.getElementById('pageTitle').textContent = isBoard ? 'Project Board' : 'To-Do';
+  document.getElementById('newProjectBtn').style.display = isBoard ? '' : 'none';
+  document.getElementById('boardView').style.display = isBoard ? '' : 'none';
+  document.getElementById('todoView').style.display = isBoard ? 'none' : '';
+  if(!isBoard) document.getElementById('newProjectForm').classList.remove('show');
   renderBoard();
   renderDetail();
+  renderTodoView();
 }
 
 function renderBoard(){
@@ -809,7 +930,10 @@ function renderBoard(){
     const na = nextAction(p);
     const st = PROJECT_STATUSES[p.status] || PROJECT_STATUSES.planning;
     return `
-      <div class="card ${id===selectedId?'selected':''}" style="--stripe-color:${st.color};" tabindex="0" data-id="${id}">
+      <div class="card ${id===selectedId?'selected':''}" style="--stripe-color:${st.color};" tabindex="0" data-id="${id}" draggable="true">
+        <div class="drag-handle" title="Drag to reorder" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+        </div>
         <div class="card-top">
           <div class="icon-square" style="background:${hexToRgba(st.color,0.14)}; border:1.5px solid ${hexToRgba(st.color,0.4)};">${iconSVG(p.icon, st.color)}</div>
           <div class="signal-box">
@@ -846,8 +970,82 @@ function renderBoard(){
     card.addEventListener('keydown', (e)=>{
       if(e.key==='Enter' || e.key===' '){ e.preventDefault(); card.click(); }
     });
+
+    // ---- drag to reorder ----
+    // Cards are moved as real DOM nodes (not re-rendered from innerHTML) while a drag is in
+    // progress: rebuilding the dragged element's own markup mid-drag breaks the browser's
+    // native drag operation, since it's tied to that specific DOM node instance.
+    card.addEventListener('dragstart', (e)=>{
+      draggedBoardCard = card;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(()=>card.classList.add('dragging'), 0);
+    });
+
+    card.addEventListener('dragend', async ()=>{
+      card.classList.remove('dragging');
+      board.querySelectorAll('.card').forEach(c=>c.classList.remove('drop-target'));
+      draggedBoardCard = null; lastDragOverCard = null; lastDragOverBefore = null;
+
+      const newOrder = [...board.querySelectorAll('.card')].map(el=>el.dataset.id);
+      if(JSON.stringify(newOrder) !== JSON.stringify(projectOrder)){
+        projectOrder = newOrder;
+        const ok = await saveIndex();
+        flashSaveStatus(ok);
+      }
+    });
+
+    card.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      if(!draggedBoardCard || card === draggedBoardCard) return;
+
+      const rect = card.getBoundingClientRect();
+      const before = (e.clientY - rect.top) < rect.height / 2;
+      if(card === lastDragOverCard && before === lastDragOverBefore) return; // no-op, nothing changed
+      lastDragOverCard = card; lastDragOverBefore = before;
+
+      board.querySelectorAll('.card').forEach(c=>c.classList.remove('drop-target'));
+      card.classList.add('drop-target');
+
+      animateBoardReorder(board, draggedBoardCard, ()=>{
+        if(before) board.insertBefore(draggedBoardCard, card);
+        else board.insertBefore(draggedBoardCard, card.nextSibling);
+      });
+    });
+
+    card.addEventListener('drop', (e)=>{
+      e.preventDefault(); // the actual reorder already happened live during dragover
+    });
   });
 }
+
+/* FLIP animation: capture every card's position before a DOM reorder, apply the reorder, then
+   animate every card (except the one actively being dragged, which just snaps into its slot)
+   from its old screen position to its new one — so displaced cards visibly slide out of the way. */
+function animateBoardReorder(container, draggedEl, mutate){
+  const firstRects = new Map();
+  container.querySelectorAll('.card').forEach(el=>{ firstRects.set(el, el.getBoundingClientRect()); });
+
+  mutate();
+
+  container.querySelectorAll('.card').forEach(el=>{
+    if(el === draggedEl) return;
+    const first = firstRects.get(el);
+    if(!first) return;
+    const last = el.getBoundingClientRect();
+    const dx = first.left - last.left;
+    const dy = first.top - last.top;
+    if(dx || dy){
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      requestAnimationFrame(()=>{
+        el.style.transition = 'transform 220ms cubic-bezier(.2,.8,.2,1)';
+        el.style.transform = '';
+      });
+    }
+  });
+}
+
 
 function taskStatusIconHTML(t){
   const cur = TASK_STATUSES[t.status] || TASK_STATUSES.todo;
@@ -951,6 +1149,12 @@ function renderDetail(){
             <select class="new-task-status" data-mid="${m.id}">
               ${Object.entries(TASK_STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}
             </select>
+            <label class="todo-toggle-row" title="Also show in To-Do list">
+              <input type="checkbox" class="new-task-show-in-todo" data-mid="${m.id}">
+              <span class="todo-toggle-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              </span>
+            </label>
             <button class="btn small add-task-btn" data-mid="${m.id}">Add</button>
           </div>
           ${addTaskDescOpenFor === m.id
@@ -1146,6 +1350,7 @@ function wireDetailEvents(p){
     const titleInput = detail.querySelector(`.new-task-title[data-mid="${mid}"]`);
     const descInput = detail.querySelector(`.new-task-desc[data-mid="${mid}"]`);
     const statusInput = detail.querySelector(`.new-task-status[data-mid="${mid}"]`);
+    const showInTodoInput = detail.querySelector(`.new-task-show-in-todo[data-mid="${mid}"]`);
     const title = titleInput.value.trim();
     if(!title) return;
     const m = p.milestones.find(x=>x.id===mid);
@@ -1153,7 +1358,8 @@ function wireDetailEvents(p){
     m.tasks.push(newTaskObj({
       title,
       description: descInput ? descInput.value.trim() : '',
-      status: statusInput.value
+      status: statusInput.value,
+      showInTodo: showInTodoInput ? showInTodoInput.checked : false
     }));
     addTaskDescOpenFor = null;
     const ok = await saveProject(p.id);
@@ -1191,6 +1397,207 @@ function wireDetailEvents(p){
       const m = p.milestones.find(mm=>mm.id===mid);
       if(m) m.tasks = m.tasks.filter(t=>t.id!==tid);
       const ok = await saveProject(p.id);
+      render();
+      flashSaveStatus(ok);
+    });
+  });
+}
+
+/* ---------- To-Do view ---------- */
+function renderTodoView(){
+  const container = document.getElementById('todoView');
+  if(!container) return;
+
+  if(projectOrder.length === 0){
+    container.innerHTML = `<div class="empty-board"><span class="label">No projects yet</span>Create a project on the Board tab before adding to-dos — every to-do needs one to attach to.</div>`;
+    return;
+  }
+
+  const allTodos = getTodoTasks();
+  const filtered = todoFilter === 'all' ? allTodos : allTodos.filter(x=>x.projectId===todoFilter);
+
+  const seen = new Set();
+  const projectsWithTodos = [];
+  allTodos.forEach(x=>{
+    if(!seen.has(x.projectId)){ seen.add(x.projectId); projectsWithTodos.push({id:x.projectId, name:x.projectName}); }
+  });
+  // if the currently active filter no longer has any todos (e.g. the last one just got completed), fall back to All
+  if(todoFilter !== 'all' && !seen.has(todoFilter)) todoFilter = 'all';
+
+  const chipsHTML = `
+    <button type="button" class="view-toggle-btn todo-filter-chip ${todoFilter==='all'?'active':''}" data-filter="all">All</button>
+    ${projectsWithTodos.map(pr=>`<button type="button" class="view-toggle-btn todo-filter-chip ${todoFilter===pr.id?'active':''}" data-filter="${pr.id}">${escapeHtml(pr.name)}</button>`).join('')}
+  `;
+
+  const listHTML = filtered.length ? filtered.map(x=>`
+    <div class="todo-box todo-task" data-pid="${x.projectId}" data-mid="${x.milestoneId}" data-tid="${x.task.id}">
+      <div>
+        <div class="todo-task-text">${escapeHtml(x.task.title)}</div>
+        <div class="todo-badge">${escapeHtml(x.projectName)}</div>
+      </div>
+      <div class="todo-actions">
+        <button type="button" class="todo-complete-btn">Complete</button>
+        <button type="button" class="todo-delete-btn" title="Delete" aria-label="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+        </button>
+      </div>
+    </div>`).join('') : `<div class="todo-empty">Nothing left to do. Add something above.</div>`;
+
+  container.innerHTML = `
+    <div class="todo-stage">
+      <div class="todo-progress-line">
+        <div class="todo-progress-text"><b>${allTodos.length}</b> open</div>
+        <div class="todo-filter-row">${chipsHTML}</div>
+      </div>
+
+      <div class="todo-box">
+        <div class="todo-composer-row">
+          <input class="todo-composer-input" id="todoComposerInput" placeholder="Add a to-do…">
+        </div>
+        <div class="todo-link-panel">
+          <div class="todo-select-wrap">
+            <div class="todo-select-label">Project <span style="color:var(--rust);">*</span></div>
+            <select class="todo-select" id="todoProjectSelect">
+              <option value="">— choose a project —</option>
+              ${projectOrder.map(id=>`<option value="${id}">${escapeHtml(projects[id].name)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="todo-select-wrap" id="todoMilestoneWrap">
+            <div class="todo-select-label">Milestone <span style="color:var(--rust);">*</span></div>
+            <select class="todo-select" id="todoMilestoneSelect" disabled><option value="">— choose a project first —</option></select>
+          </div>
+          <button type="button" class="btn todo-add-btn" id="todoAddBtn" disabled>Add</button>
+        </div>
+        <div class="todo-hint" id="todoHint">Every to-do needs a project and milestone — this creates a real task there.</div>
+      </div>
+
+      <div id="todoTaskList">${listHTML}</div>
+    </div>`;
+
+  wireTodoView();
+}
+
+function wireTodoView(){
+  const container = document.getElementById('todoView');
+  const textInput = document.getElementById('todoComposerInput');
+  if(!textInput) return; // empty-projects state — nothing to wire
+
+  const projectSelect = document.getElementById('todoProjectSelect');
+  const milestoneWrap = document.getElementById('todoMilestoneWrap');
+  const addBtn = document.getElementById('todoAddBtn');
+  const hint = document.getElementById('todoHint');
+
+  function renderMilestoneField(){
+    const pid = projectSelect.value;
+    if(!pid){
+      milestoneWrap.innerHTML = `<div class="todo-select-label">Milestone <span style="color:var(--rust);">*</span></div><select class="todo-select" id="todoMilestoneSelect" disabled><option value="">— choose a project first —</option></select>`;
+      hint.textContent = 'Every to-do needs a project and milestone — this creates a real task there.';
+      hint.classList.remove('new-milestone');
+      updateAddState();
+      return;
+    }
+    const p = projects[pid];
+    const milestones = p ? p.milestones : [];
+    if(milestones.length === 0){
+      milestoneWrap.innerHTML = `<div class="todo-select-label">Milestone <span style="color:var(--rust);">*</span></div><input class="todo-select" id="todoMilestoneSelect" type="text" placeholder="New milestone name…">`;
+      hint.textContent = `"${escapeHtml(p.name)}" has no milestones yet — name one and it'll be created along with this to-do.`;
+      hint.classList.add('new-milestone');
+      document.getElementById('todoMilestoneSelect').addEventListener('input', updateAddState);
+    } else {
+      milestoneWrap.innerHTML = `
+        <div class="todo-select-label">Milestone <span style="color:var(--rust);">*</span></div>
+        <select class="todo-select" id="todoMilestoneSelect">
+          <option value="">— choose a milestone —</option>
+          ${milestones.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('')}
+          <option value="__new__">＋ New milestone…</option>
+        </select>`;
+      hint.textContent = 'Every to-do needs a project and milestone — this creates a real task there.';
+      hint.classList.remove('new-milestone');
+      const sel = document.getElementById('todoMilestoneSelect');
+      sel.addEventListener('change', (e)=>{
+        if(e.target.value === '__new__'){
+          milestoneWrap.innerHTML = `<div class="todo-select-label">Milestone <span style="color:var(--rust);">*</span></div><input class="todo-select" id="todoMilestoneSelect" type="text" placeholder="New milestone name…">`;
+          hint.textContent = `Naming a new milestone on "${escapeHtml(p.name)}".`;
+          hint.classList.add('new-milestone');
+          const inp = document.getElementById('todoMilestoneSelect');
+          inp.addEventListener('input', updateAddState);
+          inp.focus();
+        }
+        updateAddState();
+      });
+    }
+    updateAddState();
+  }
+
+  function updateAddState(){
+    const mEl = document.getElementById('todoMilestoneSelect');
+    const mVal = mEl && !mEl.disabled ? mEl.value.trim() : '';
+    addBtn.disabled = !(textInput.value.trim() && projectSelect.value && mVal);
+  }
+
+  projectSelect.addEventListener('change', renderMilestoneField);
+  textInput.addEventListener('input', updateAddState);
+  textInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !addBtn.disabled) addBtn.click(); });
+
+  addBtn.addEventListener('click', async ()=>{
+    if(addBtn.disabled) return;
+    const title = textInput.value.trim();
+    const pid = projectSelect.value;
+    const mEl = document.getElementById('todoMilestoneSelect');
+    const p = projects[pid];
+    if(!title || !pid || !p || !mEl) return;
+
+    let milestone;
+    if(mEl.tagName === 'INPUT'){
+      const name = mEl.value.trim();
+      if(!name) return;
+      milestone = newMilestoneObj(name);
+      p.milestones.push(milestone);
+    } else {
+      milestone = p.milestones.find(m=>m.id===mEl.value);
+      if(!milestone) return;
+    }
+    milestone.tasks.push(newTaskObj({ title, showInTodo:true }));
+    const ok = await saveProject(pid);
+    render();
+    flashSaveStatus(ok);
+  });
+
+  renderMilestoneField();
+
+  container.querySelectorAll('.todo-filter-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      todoFilter = chip.dataset.filter;
+      renderTodoView();
+    });
+  });
+
+  container.querySelectorAll('.todo-complete-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const row = btn.closest('.todo-task');
+      const { pid, mid, tid } = row.dataset;
+      const p = projects[pid];
+      const m = p && p.milestones.find(x=>x.id===mid);
+      const t = m && m.tasks.find(x=>x.id===tid);
+      if(!t) return;
+      t.status = 'done';
+      const ok = await saveProject(pid);
+      render();
+      flashSaveStatus(ok);
+    });
+  });
+
+  container.querySelectorAll('.todo-delete-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const row = btn.closest('.todo-task');
+      const { pid, mid, tid } = row.dataset;
+      const p = projects[pid];
+      const m = p && p.milestones.find(x=>x.id===mid);
+      const t = m && m.tasks.find(x=>x.id===tid);
+      if(!t) return;
+      if(!confirm(`Delete "${t.title}"? This removes the task from its milestone in the project too. This can't be undone.`)) return;
+      m.tasks = m.tasks.filter(x=>x.id!==tid);
+      const ok = await saveProject(pid);
       render();
       flashSaveStatus(ok);
     });
@@ -1250,6 +1657,14 @@ async function createProject(){
 }
 document.getElementById('createProjectBtn').addEventListener('click', createProject);
 nameInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') createProject(); });
+
+document.querySelectorAll('#mainTabRow .view-toggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    currentView = btn.dataset.view;
+    document.querySelectorAll('#mainTabRow .view-toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    render();
+  });
+});
 
 function showApp(){
   document.getElementById('loginGate').style.display = 'none';
