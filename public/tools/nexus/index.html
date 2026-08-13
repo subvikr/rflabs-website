@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Lead Funnel</title>
+<script>
+// Redirect to the shared RFLABS login before the page paints, so a signed-out
+// visitor never sees a flash of lead data. authoritative check happens again
+// in the main script (this is purely to avoid the flash).
+(function(){
+  try{
+    var raw = localStorage.getItem('rflabs_identity_session');
+    var session = raw ? JSON.parse(raw) : null;
+    if(!session || !session.access_token){ window.location.href = '/apps/'; }
+  }catch(e){ window.location.href = '/apps/'; }
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF0EF;
+    --surface:#FFFFFF;
+    --ink:#1B222B;
+    --steel:#3E5568;
+    --steel-dk:#2A3B49;
+    --amber:#E2A33D;
+    --rust:#C1512E;
+    --green:#4C7A5E;
+    --line:#DADDDD;
+    --line-dk:#C5C9C9;
+    --muted:#6B7480;
+    --card-shadow: 0 1px 2px rgba(27,34,43,0.06), 0 1px 0 rgba(27,34,43,0.03);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    height:100vh;
+    height:100dvh;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .disp{font-family:'Space Grotesk', sans-serif;}
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--steel-dk);
+    color:#F2F4F3;
+    padding:12px 16px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px 16px;
+    flex-shrink:0;
+    border-bottom:3px solid var(--amber);
+    row-gap:10px;
+  }
+  .logo{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:0.5px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .logo span{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:400;
+    font-size:11px;
+    color:#9FB3BF;
+    letter-spacing:1px;
+  }
+  .stats{
+    display:flex;
+    gap:0;
+    margin-left:12px;
+  }
+  .stat{
+    padding:2px 18px;
+    border-left:1px solid rgba(255,255,255,0.15);
+    background:none; border-top:none; border-right:none; border-bottom:none;
+    cursor:pointer; text-align:left; font-family:inherit; border-radius:4px;
+    transition:background 0.12s ease;
+  }
+  .stat:hover{background:rgba(255,255,255,0.06);}
+  .stat .num{font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:600; line-height:1;}
+  .stat .lbl{font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:#9FB3BF; margin-top:3px;}
+  .stat.due .num{color:var(--amber);}
+  .stat.overdue .num{color:#E8836A;}
+
+  .header-actions{margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .view-toggle{
+    display:flex;
+    background:rgba(255,255,255,0.08);
+    border-radius:6px;
+    padding:3px;
+    gap:2px;
+  }
+  .view-toggle button{
+    background:transparent;
+    border:none;
+    color:#B9C6CC;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:500;
+    padding:8px 13px;
+    border-radius:4px;
+    cursor:pointer;
+    min-height:36px;
+  }
+  .view-toggle button.active{background:var(--surface); color:var(--steel-dk);}
+  .btn-primary{
+    background:var(--amber);
+    color:#241705;
+    border:none;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:9px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-ghost.active-toggle{background:rgba(226,163,61,0.18); border-color:var(--amber); color:var(--amber);}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.25);
+    color:#E9EDEC;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    padding:8px 13px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+
+  /* ---------- Mobile pipeline (HubSpot-style) ---------- */
+  .mobile-only{display:none;}
+  #mobileBoard{height:100%; flex-direction:column; min-height:0;}
+  .mobile-tabs{
+    display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    padding:12px 12px 10px; flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--line);
+  }
+  .mtab{
+    flex-shrink:0; display:flex; align-items:center; gap:6px;
+    padding:8px 14px; border-radius:20px; border:1px solid var(--line-dk);
+    background:var(--bg); color:var(--muted);
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:12.5px;
+    cursor:pointer; white-space:nowrap;
+  }
+  .mtab .mtab-count{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    background:rgba(0,0,0,0.07); padding:1px 6px; border-radius:8px;
+  }
+  .mtab.active{background:var(--steel-dk); color:#fff; border-color:var(--steel-dk);}
+  .mtab.active .mtab-count{background:rgba(255,255,255,0.2); color:#fff;}
+  .mobile-list{
+    flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:12px 12px 90px; display:flex; flex-direction:column; gap:10px;
+  }
+  .mobile-empty{text-align:center; color:var(--muted); font-size:13px; padding:50px 20px;}
+  .mobile-fab{
+    display:none; position:fixed; right:18px; bottom:22px;
+    border-radius:26px; background:var(--amber); color:#241705; border:none;
+    padding:13px 20px 13px 16px; gap:7px;
+    font-family:'IBM Plex Sans', sans-serif; font-size:14px; font-weight:700; white-space:nowrap;
+    box-shadow:0 4px 14px rgba(27,34,43,0.28);
+    cursor:pointer; z-index:30; align-items:center; justify-content:center;
+  }
+  #mobileTopbar{display:none;}
+  #drawerOverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:50;
+    opacity:0; pointer-events:none; transition:opacity 0.2s ease;
+  }
+  #drawerOverlay.open{opacity:1; pointer-events:auto;}
+  #drawer{
+    position:fixed; top:0; left:0; height:100%; width:278px; max-width:82vw;
+    background:var(--surface); z-index:55; display:flex; flex-direction:column;
+    transform:translateX(-100%); transition:transform 0.22s ease;
+    box-shadow:6px 0 26px rgba(0,0,0,0.4);
+  }
+  #drawer.open{transform:translateX(0);}
+  main{flex:1; overflow:hidden; position:relative;}
+  #board{
+    height:100%;
+    display:flex;
+    gap:14px;
+    padding:16px 16px 0 16px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+  }
+  .col{
+    flex:0 0 272px;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    min-height:0;
+    scroll-snap-align:start;
+  }
+  .col-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    padding:2px 4px 10px 2px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:10px;
+  }
+  .col-head .idx{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    background:var(--surface);
+    border:1px solid var(--line-dk);
+    border-radius:3px;
+    padding:1px 5px;
+  }
+  .col-head .name{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+  }
+  .col-head .count{
+    margin-left:auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .col-body{
+    flex:1;
+    overflow-y:auto;
+    padding-bottom:20px;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+  }
+  .col-body.dragover{background:rgba(62,85,104,0.06); border-radius:8px;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:11px 12px 10px 12px;
+    cursor:grab;
+    box-shadow:var(--card-shadow);
+    position:relative;
+  }
+  .card:active{cursor:grabbing;}
+  .card.lost{opacity:0.5;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:6px;}
+  .card-company{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14px; line-height:1.25;}
+  .card-cat{font-size:11px; color:var(--muted); margin-top:1px;}
+  .tags{display:flex; flex-wrap:wrap; gap:4px; margin-top:7px;}
+  .tag{
+    font-size:10px;
+    background:#EAF0F2;
+    color:var(--steel-dk);
+    border-radius:3px;
+    padding:2px 6px;
+    font-weight:500;
+  }
+  .card-note{font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .card-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:9px;}
+  .card-followup-hint{
+    font-size:11px; color:var(--muted); margin-top:7px; padding-top:7px;
+    border-top:1px dashed var(--line); line-height:1.4;
+  }
+  .card-followup-hint b{color:var(--steel-dk); font-weight:600;}
+  .stage-quick{
+    width:100%;
+    margin-top:9px;
+    font-size:11px;
+    font-family:'IBM Plex Mono', monospace;
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:6px 7px;
+    background:var(--bg);
+    color:var(--muted);
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .avatar{
+    width:20px; height:20px; border-radius:50%;
+    background:var(--steel);
+    color:#fff;
+    font-size:9.5px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .followup-badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    padding:2px 7px;
+    border-radius:10px;
+    font-weight:500;
+  }
+  .fu-overdue{background:#FBE4DC; color:var(--rust);}
+  .fu-today{background:#FBEDD3; color:#9A6A0F;}
+  .fu-soon{background:#E9EEE9; color:var(--green);}
+  .fu-later{background:#EFEFEF; color:var(--muted);}
+  .fu-none{background:#F4F4F4; color:#B7BABE;}
+
+  .add-lead-inline{
+    border:1.5px dashed var(--line-dk);
+    border-radius:8px;
+    text-align:center;
+    padding:10px;
+    font-size:12px;
+    color:var(--muted);
+    cursor:pointer;
+    background:transparent;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .add-lead-inline:hover{border-color:var(--steel); color:var(--steel);}
+
+  /* ---------- Followup / Table views ---------- */
+  #followupView, #tableView{
+    display:none;
+    height:100%;
+    overflow-y:auto;
+    padding:20px 24px 40px;
+  }
+  .fv-section{margin-bottom:26px; border-radius:8px;}
+  .fv-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .fv-title .dot{width:8px; height:8px; border-radius:50%;}
+  .fv-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:10px 14px;
+    margin-bottom:7px;
+    cursor:pointer;
+  }
+  .fv-row:hover{border-color:var(--steel);}
+  .fv-row .fv-company{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; width:170px; flex-shrink:0;}
+  .fv-row .fv-stage{font-size:11px; color:var(--muted); width:130px; flex-shrink:0;}
+  .fv-row .fv-note{font-size:12px; color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .fv-row .fv-note b{color:var(--steel-dk); font-weight:600;}
+  .fv-row .fv-date{font-family:'IBM Plex Mono', monospace; font-size:11px; flex-shrink:0;}
+
+  table.leads-table{width:100%; border-collapse:collapse; background:var(--surface); border-radius:8px; overflow:hidden; border:1px solid var(--line);}
+  table.leads-table th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--muted); font-weight:600; padding:10px 12px; border-bottom:2px solid var(--ink);
+    background:#F5F6F6; position:sticky; top:0;
+  }
+  table.leads-table td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:12.5px; vertical-align:top;}
+  table.leads-table tr:hover td{background:#FAFBFB;}
+  table.leads-table tr{cursor:pointer;}
+
+  /* ---------- Side panel ---------- */
+  #overlay{
+    position:fixed; inset:0; background:rgba(27,34,43,0.35);
+    display:none; z-index:40;
+  }
+  #panel{
+    position:fixed; top:0; right:-460px; width:440px; max-width:92vw; height:100%;
+    background:var(--surface); z-index:50;
+    box-shadow:-6px 0 24px rgba(0,0,0,0.15);
+    transition:right 0.22s ease;
+    display:flex; flex-direction:column;
+  }
+  #panel.open{right:0;}
+  .panel-head{
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+  }
+  .panel-head h2{font-family:'Space Grotesk', sans-serif; font-size:19px; margin:0 0 3px 0;}
+  .panel-head .cat{font-size:12px; color:var(--muted);}
+  .close-btn{background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; line-height:1; padding:2px 6px;}
+  .qa-call-btn{
+    width:34px; height:34px; border-radius:50%; border:1.5px solid var(--steel); color:var(--steel);
+    display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0;
+  }
+  .panel-body{flex:1; overflow-y:auto; padding:16px 20px 30px;}
+  .field-row{display:flex; gap:10px; margin-bottom:14px;}
+  .field{flex:1;}
+  .field label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:600; margin-bottom:5px;}
+  .field select, .field input, .field textarea{
+    width:100%; border:1px solid var(--line-dk); border-radius:6px; padding:7px 9px;
+    font-family:'IBM Plex Sans', sans-serif; font-size:12.5px; background:var(--bg); color:var(--ink);
+  }
+  .field textarea{resize:vertical; font-family:'IBM Plex Mono', monospace; font-size:12px;}
+  .tags-edit{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px;}
+  .chip-picker{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px;}
+  .chip{padding:4px 11px; border-radius:14px; font-size:11.5px; font-weight:500; cursor:pointer; border:1px solid var(--line-dk); background:var(--surface); color:var(--ink); user-select:none; transition:background 0.12s, color 0.12s;}
+  .chip:hover{border-color:var(--steel);}
+  .chip.selected{background:var(--steel); color:#fff; border-color:var(--steel);}
+  .chip-add-row{display:flex; gap:6px; margin-bottom:14px; margin-top:8px;}
+  .chip-plus-btn{
+    display:inline-flex; align-items:center; gap:4px; background:none;
+    border:1.5px dashed var(--line-dk); border-radius:14px; padding:5px 12px;
+    font-size:11.5px; font-weight:600; color:var(--muted); cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif; margin-top:6px;
+  }
+  .chip-plus-btn:hover{border-color:var(--steel); color:var(--steel);}
+  .task-save-row{display:flex; gap:8px;}
+  .task-save-row input{flex:1;}
+  .task-save-row .btn-primary{padding:0 16px; white-space:nowrap;}
+  .attention-banner{
+    display:flex; align-items:center; gap:8px; background:rgba(193,81,46,0.12);
+    border:1px solid rgba(193,81,46,0.4); color:var(--rust); border-radius:7px;
+    padding:10px 12px; font-size:12.5px; font-weight:600; margin-bottom:16px;
+  }
+  .attention-flag{
+    display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700;
+    color:var(--rust); background:rgba(193,81,46,0.14); border-radius:10px; padding:2px 8px;
+    margin-top:7px;
+  }
+  .chip-add-row input{flex:1; border:1px solid var(--line-dk); border-radius:6px; padding:7px 9px; font-size:12px; font-family:'IBM Plex Sans', sans-serif; background:var(--bg); color:var(--ink);}
+  .chip-add-row button{border:none; background:var(--steel-dk); color:#fff; border-radius:6px; padding:7px 12px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;}
+  .section-lbl{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:0.5px; margin:18px 0 9px; color:var(--steel-dk); border-top:1px solid var(--line); padding-top:16px;}
+  .section-lbl:first-child{border-top:none; padding-top:0; margin-top:0;}
+  .req-box{background:#FBF6EC; border:1px solid #EFE0BE; border-radius:6px; padding:9px 11px; font-size:12px; line-height:1.5; color:#5C4A1E;}
+  .req-box-edit{
+    width:100%; background:#FBF6EC; border:1px solid #EFE0BE; border-radius:6px;
+    padding:9px 11px; font-size:12.5px; line-height:1.5; color:#5C4A1E;
+    font-family:'IBM Plex Sans', sans-serif; resize:vertical;
+  }
+  .timeline{display:flex; flex-direction:column; gap:11px; margin-top:4px;}
+  .tl-item{border-left:2px solid var(--line-dk); padding-left:11px; position:relative;}
+  .tl-item::before{content:''; position:absolute; left:-5px; top:3px; width:8px; height:8px; border-radius:50%; background:var(--steel);}
+  .tl-date{font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted);}
+  .tl-by{font-size:10.5px; color:var(--steel); font-weight:600; margin-left:6px;}
+  .tl-text{font-size:12.5px; margin-top:3px; line-height:1.45;}
+  .add-activity{margin-top:14px; display:flex; flex-direction:column; gap:10px;}
+  .activity-followup-row{display:flex; align-items:center; gap:10px;}
+  .toggle-switch{position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0;}
+  .toggle-switch input{opacity:0; width:0; height:0; position:absolute;}
+  .toggle-slider{position:absolute; inset:0; background:var(--line-dk); border-radius:24px; cursor:pointer; transition:background 0.15s ease;}
+  .toggle-slider::before{content:''; position:absolute; height:18px; width:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.25);}
+  .toggle-switch input:checked + .toggle-slider{background:var(--steel);}
+  .toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px);}
+  .toggle-label{font-size:12.5px; color:var(--muted); font-weight:500;}
+  .followup-quick-row{
+    display:flex; flex-direction:column; gap:5px; background:var(--bg);
+    border:1px solid var(--line-dk); border-radius:7px; padding:9px 11px;
+  }
+  .followup-quick-row label{font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:600;}
+  .date-input-wrap{display:flex; align-items:center; gap:8px; cursor:pointer; position:relative;}
+  .followup-quick-row input{
+    border:1px solid var(--line-dk); background:var(--surface); border-radius:6px;
+    padding:8px 10px; font-family:'IBM Plex Sans', sans-serif; font-size:13px; color:var(--ink);
+    width:100%; cursor:pointer;
+  }
+  .followup-quick-row .date-icon{
+    flex-shrink:0; width:32px; height:32px; border-radius:6px; border:1px solid var(--line-dk);
+    background:var(--surface); display:flex; align-items:center; justify-content:center;
+    font-size:15px; cursor:pointer;
+  }
+  .cal-popover{
+    display:none; position:fixed; z-index:200;
+    width:250px; background:var(--surface); border:1px solid var(--line-dk); border-radius:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3); padding:10px 12px 12px;
+  }
+  .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .cal-title{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:12.5px; color:var(--ink);}
+  .cal-nav{
+    background:none; border:1px solid var(--line-dk); border-radius:5px; width:24px; height:24px;
+    color:var(--ink); cursor:pointer; font-size:13px; line-height:1;
+  }
+  .cal-nav:hover{border-color:var(--steel); color:var(--steel);}
+  .cal-weekdays{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:3px;}
+  .cal-weekdays span{text-align:center; font-size:9.5px; color:var(--muted); font-weight:600;}
+  .cal-days{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
+  .cal-day{
+    background:none; border:none; border-radius:5px; padding:6px 0; font-size:11.5px;
+    color:var(--ink); cursor:pointer; font-family:'IBM Plex Mono', monospace;
+  }
+  .cal-day:hover{background:rgba(45,212,198,0.14);}
+  .cal-day.today{color:var(--steel); font-weight:700;}
+  .cal-day.selected{background:var(--steel); color:#fff;}
+  .cal-day.empty{cursor:default;}
+  .cal-day.empty:hover{background:none;}
+  .panel-footer{padding:14px 20px; border-top:1px solid var(--line); display:flex; gap:8px;}
+  .btn-sm{flex:1; padding:9px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; border:none; font-family:'IBM Plex Sans', sans-serif;}
+  .btn-won{background:var(--green); color:#fff;}
+  .btn-lost{background:transparent; color:var(--rust); border:1px solid var(--rust) !important;}
+  .btn-del{background:transparent; color:var(--muted); border:1px solid var(--line-dk) !important;}
+
+  /* ---------- Modal (new lead) ---------- */
+  #modalOverlay{position:fixed; inset:0; background:rgba(27,34,43,0.4); display:none; align-items:center; justify-content:center; z-index:60;}
+  #modal{background:var(--surface); border-radius:10px; width:480px; max-width:92vw; max-height:88vh; overflow-y:auto; padding:22px 24px;}
+  #modal h3{font-family:'Space Grotesk', sans-serif; margin:0 0 16px 0; font-size:17px;}
+  .modal-actions{display:flex; gap:8px; margin-top:6px;}
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line-dk); border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  @media (max-width:760px){
+    :root{
+      --bg:#0B0F17;
+      --surface:#141B26;
+      --ink:#EDF2F6;
+      --steel:#2DD4C6;
+      --steel-dk:#1FB5AA;
+      --amber:#E2A33D;
+      --rust:#FF6B5B;
+      --green:#4ADE9B;
+      --line:#212B38;
+      --line-dk:#2C3948;
+      --muted:#8C99A6;
+    }
+    body{background:var(--bg);}
+    header{display:none;}
+
+    /* mobile top bar */
+    #mobileTopbar.mobile-only{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:13px 8px 13px 6px; background:var(--surface); border-bottom:1px solid var(--line);
+      flex-shrink:0;
+    }
+    .topbar-icon-btn{
+      background:none; border:none; color:var(--ink); font-size:19px; width:40px; height:40px;
+      display:flex; align-items:center; justify-content:center; border-radius:9px; cursor:pointer;
+    }
+    .topbar-icon-btn:active{background:rgba(255,255,255,0.07);}
+    .topbar-title{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16.5px; letter-spacing:0.6px; color:var(--ink);}
+
+    /* drawer (positioning lives in base CSS; this just applies the dark palette) */
+    .drawer-head{display:flex; align-items:center; gap:12px; padding:24px 18px 18px;}
+    .drawer-avatar{
+      width:42px; height:42px; border-radius:50%; background:var(--steel-dk); color:#08201D;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; flex-shrink:0;
+    }
+    .drawer-org{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; color:var(--ink);}
+    .drawer-sub{font-size:11px; color:var(--muted); margin-top:2px;}
+    .drawer-section-lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted); padding:14px 20px 6px;}
+    .drawer-nav{display:flex; flex-direction:column; padding:2px 10px;}
+    .drawer-nav-item{
+      display:flex; align-items:center; gap:13px; width:100%;
+      background:none; border:none; text-align:left;
+      padding:12px 10px; border-radius:9px; font-size:14px; font-weight:500;
+      color:var(--muted); cursor:pointer; font-family:'IBM Plex Sans', sans-serif;
+    }
+    .drawer-nav-item .dn-icon{font-size:16px; width:20px; text-align:center; flex-shrink:0;}
+    .drawer-nav-item.active{background:rgba(45,212,198,0.13); color:var(--steel);}
+    .drawer-nav-item:active{background:rgba(255,255,255,0.05);}
+    .drawer-divider{height:1px; background:var(--line); margin:10px 18px;}
+
+    /* board / mobile pipeline */
+    #board{display:none;}
+    .mobile-only{display:flex;}
+    .mobile-fab{display:flex;}
+    .card{padding:13px 14px 12px 14px; background:var(--surface); border-color:var(--line);}
+    .card-company{font-size:14.5px; color:var(--ink);}
+    .card-cat{color:var(--muted);}
+    .stage-quick{padding:10px 9px; font-size:12px; background:var(--bg); border-color:var(--line); color:var(--muted);}
+    .avatar{background:transparent; border:1.5px solid var(--steel); color:var(--steel);}
+    .tag{background:rgba(45,212,198,0.14); color:var(--steel);}
+    .fu-overdue{background:rgba(255,107,91,0.16); color:var(--rust);}
+    .fu-today{background:rgba(226,163,61,0.2); color:#F0B84D;}
+    .fu-soon{background:rgba(74,222,155,0.16); color:var(--green);}
+    .fu-later{background:rgba(255,255,255,0.06); color:var(--muted);}
+    .fu-none{background:rgba(255,255,255,0.04); color:#5B6672;}
+
+    #mobileTabs{background:var(--surface); border-color:var(--line);}
+    .mtab{background:var(--bg); border-color:var(--line-dk); color:var(--muted);}
+    .mtab.active{background:var(--steel-dk); color:#08201D; border-color:var(--steel-dk);}
+    .mtab.active .mtab-count{background:rgba(8,32,29,0.18); color:#08201D;}
+    .mobile-empty{color:var(--muted);}
+
+    #followupView, #tableView{padding:14px 14px 30px; background:var(--bg);}
+    .fv-row{flex-wrap:wrap; row-gap:4px; padding:11px 13px; background:var(--surface); border-color:var(--line);}
+    .fv-row .fv-company{width:100%; order:1; color:var(--ink);}
+    .fv-row .fv-stage{order:3; width:auto; color:var(--muted);}
+    .fv-row .fv-note{order:4; width:100%; white-space:normal; color:var(--muted);}
+    .fv-row .fv-date{order:2; margin-left:auto;}
+    .fv-title{color:var(--ink);}
+
+    #tableView{overflow-x:auto;}
+    table.leads-table{min-width:640px; background:var(--surface); border-color:var(--line);}
+    table.leads-table th{background:var(--bg); color:var(--muted); border-color:var(--line);}
+    table.leads-table td{border-color:var(--line); color:var(--ink);}
+    table.leads-table tr:hover td{background:rgba(255,255,255,0.03);}
+
+    /* lead detail sheet */
+    #panel{width:100vw; max-width:100vw; background:var(--surface);}
+    .panel-head{padding:14px 16px 14px; border-color:var(--line); align-items:center;}
+    .close-btn{
+      order:-1; color:var(--steel); font-size:22px; width:34px; height:34px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; border-radius:50%;
+    }
+    .close-btn:active{background:rgba(45,212,198,0.12);}
+    .panel-head h2{color:var(--ink);}
+    .panel-head .cat{color:var(--muted);}
+    .panel-body{padding:14px 16px 26px; background:var(--bg);}
+    .section-lbl{color:var(--steel); border-color:var(--line);}
+    .field label{color:var(--muted);}
+    .field select, .field input, .field textarea{background:var(--surface); border-color:var(--line-dk); color:var(--ink);}
+    .req-box{background:rgba(226,163,61,0.1); border-color:rgba(226,163,61,0.35); color:#F0C97A;}
+    .req-box-edit{background:rgba(226,163,61,0.1); border-color:rgba(226,163,61,0.35); color:#F0C97A;}
+    .tl-item{border-color:var(--line-dk);}
+    .tl-item::before{background:var(--steel);}
+    .tl-date{color:var(--muted);}
+    .tl-by{color:var(--steel);}
+    .tl-text{color:var(--ink);}
+    .panel-footer{padding:12px 16px; flex-wrap:wrap; background:var(--surface); border-color:var(--line);}
+    .btn-sm{flex:1 1 45%;}
+    .btn-del{color:var(--muted); border-color:var(--line-dk) !important;}
+    .field-row{flex-direction:column; gap:12px; margin-bottom:0;}
+    .chip{padding:7px 13px; font-size:12.5px; background:var(--bg); border-color:var(--line-dk); color:var(--muted);}
+    .chip.selected{background:var(--steel-dk); color:#08201D; border-color:var(--steel-dk);}
+    .chip-add-row input, .chip-add-row button{padding:9px 10px; font-size:13px;}
+    .chip-add-row input{background:var(--bg); border-color:var(--line-dk); color:var(--ink);}
+
+    /* new-lead sheet as a bottom sheet */
+    #modalOverlay{align-items:flex-end;}
+    #modal{
+      width:100%; max-width:100%; border-radius:18px 18px 0 0; max-height:88vh;
+      padding:10px 20px 24px; background:var(--surface);
+    }
+    #modal::before{content:''; display:block; width:38px; height:4px; background:var(--line-dk); border-radius:2px; margin:0 auto 16px;}
+    #modal h3{color:var(--ink);}
+  }
+  @media (max-width:420px){
+    .col{flex:0 0 90vw;}
+    .stat{padding:2px 12px;}
+  }
+</style>
+</head>
+<body>
+<div id="drawerOverlay"></div>
+<aside id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-avatar">N</div>
+    <div>
+      <div class="drawer-org">NEXUS</div>
+      <div class="drawer-sub">RFLABS Lead Funnel</div>
+    </div>
+  </div>
+  <div class="drawer-section-lbl">Views</div>
+  <nav class="drawer-nav">
+    <button class="drawer-nav-item active" data-view="board"><span class="dn-icon">▤</span>Funnel</button>
+    <button class="drawer-nav-item" data-view="followup"><span class="dn-icon">◔</span>Follow-ups</button>
+    <button class="drawer-nav-item" data-view="table"><span class="dn-icon">≣</span>All Leads</button>
+  </nav>
+  <div class="drawer-divider"></div>
+  <div class="drawer-section-lbl">Options</div>
+  <nav class="drawer-nav">
+    <button class="drawer-nav-item" id="drawerShowLostBtn"><span class="dn-icon">⚑</span><span id="drawerShowLostLabel">Show Lost</span></button>
+    <button class="drawer-nav-item" id="drawerResetBtn"><span class="dn-icon">↺</span>Reset demo data</button>
+  </nav>
+</aside>
+<div id="mobileTopbar" class="mobile-only">
+  <button class="topbar-icon-btn" id="drawerOpenBtn" aria-label="Menu">☰</button>
+  <div class="topbar-title">NEXUS</div>
+  <button class="topbar-icon-btn" id="drawerOpenBtn2" aria-label="Menu" style="visibility:hidden;">☰</button>
+</div>
+
+<header>
+  <div class="logo">NEXUS <span>LEAD FUNNEL</span></div>
+  <div class="stats">
+    <button class="stat" id="statOpenBtn" type="button"><div class="num mono" id="statTotal">0</div><div class="lbl">Open Leads</div></button>
+    <button class="stat due" id="statDueBtn" type="button"><div class="num mono" id="statToday">0</div><div class="lbl">Due Today</div></button>
+    <button class="stat overdue" id="statOverdueBtn" type="button"><div class="num mono" id="statOverdue">0</div><div class="lbl">Overdue</div></button>
+    <button class="stat" id="statWonBtn" type="button"><div class="num mono" id="statWon">0</div><div class="lbl">Won (30d)</div></button>
+  </div>
+  <div class="header-actions">
+    <div class="view-toggle">
+      <button class="active" data-view="board">Funnel</button>
+      <button data-view="followup">Follow-ups</button>
+      <button data-view="table">All Leads</button>
+    </div>
+    <button class="btn-ghost" id="showLostBtn">☰ <span class="btn-label">Show Lost</span></button>
+    <button class="btn-ghost" id="resetBtn">↺ <span class="btn-label">Reset demo data</span></button>
+    <button class="btn-primary" id="newLeadBtn">+ New Lead</button>
+  </div>
+</header>
+
+<main>
+  <div id="board"></div>
+
+  <div id="mobileBoard" class="mobile-only">
+    <div id="mobileTabs" class="mobile-tabs"></div>
+    <div id="mobileList" class="mobile-list"></div>
+  </div>
+
+  <button id="mobileFab" class="mobile-fab" aria-label="Add lead"><span style="font-size:17px; line-height:1;">+</span> Add Lead</button>
+
+  <div id="followupView">
+    <div class="fv-section" id="fvSectionOverdue">
+      <div class="fv-title"><span class="dot" style="background:var(--rust)"></span>Overdue</div>
+      <div id="fvOverdue"></div>
+    </div>
+    <div class="fv-section" id="fvSectionToday">
+      <div class="fv-title"><span class="dot" style="background:var(--amber)"></span>Today &amp; Tomorrow</div>
+      <div id="fvToday"></div>
+    </div>
+    <div class="fv-section" id="fvSectionLater">
+      <div class="fv-title"><span class="dot" style="background:var(--green)"></span>Later</div>
+      <div id="fvLater"></div>
+    </div>
+    <div class="fv-section" id="fvSectionNone">
+      <div class="fv-title"><span class="dot" style="background:#B7BABE"></span>No follow-up set</div>
+      <div id="fvNone"></div>
+    </div>
+  </div>
+
+  <div id="tableView">
+    <table class="leads-table">
+      <thead><tr>
+        <th>Company</th><th>Category</th><th>Products</th><th>Stage</th><th>City</th><th>Next Follow-up</th><th>Last Activity</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<datalist id="cityList"></datalist>
+<div id="overlay"></div>
+<div id="panel">
+  <div class="panel-head">
+    <button class="close-btn" id="closePanel">&larr;</button>
+    <div style="flex:1;">
+      <h2 id="pCompany">—</h2>
+      <div class="cat" id="pCat">—</div>
+    </div>
+    <a class="qa-call-btn" id="qaCallBtn" href="#" style="display:none;" aria-label="Call">
+      <span style="font-size:16px;">&#9742;</span>
+    </a>
+  </div>
+  <div class="panel-body">
+    <div id="pAttentionBanner" class="attention-banner" style="display:none;"></div>
+    <div class="section-lbl">Status</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Stage</label>
+        <select id="pStage"></select>
+      </div>
+      <div class="field">
+        <label>City</label>
+        <input type="text" id="pCity" list="cityList" placeholder="e.g. Chennai">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Contact</label>
+        <input type="text" id="pContact" placeholder="Phone / email">
+      </div>
+    </div>
+
+    <div class="section-lbl">Follow-up</div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Date</label>
+      <div class="date-input-wrap" id="pFollowupWrap">
+        <span class="date-icon">📅</span>
+        <input type="text" id="pFollowup" readonly placeholder="No date set" style="cursor:pointer;">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Assigned to</label>
+      <div class="chip-picker" id="pPersonPicker"></div>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Task</label>
+      <div class="task-save-row">
+        <input type="text" id="pFollowupTask" placeholder="What needs to happen? e.g. Call to confirm quantity">
+        <button type="button" class="btn-primary" id="pFollowupTaskBtn">Save</button>
+      </div>
+    </div>
+
+    <div class="section-lbl">Products</div>
+    <div class="chip-picker" id="pProductsPicker"></div>
+    <button type="button" class="chip-plus-btn" id="pProductAddTrigger">+ Add product</button>
+    <div class="chip-add-row" id="pProductAddRow" style="display:none;">
+      <input type="text" id="pProductNew" placeholder="New product name...">
+      <button type="button" id="pProductAddBtn">Add</button>
+    </div>
+
+    <div class="section-lbl">Requirement</div>
+    <textarea id="pRequirement" class="req-box-edit" rows="3" placeholder="Specs, quantities, pricing, next steps..."></textarea>
+    <button type="button" class="btn-primary" id="pRequirementBtn" style="margin-top:8px; margin-bottom:4px;">Save requirement</button>
+
+    <div class="section-lbl">Activity Log</div>
+    <div class="timeline" id="pTimeline"></div>
+    <div class="add-activity">
+      <textarea id="pNewActivity" rows="3" placeholder="What happened today? e.g. Called, sent quote, got specs..."></textarea>
+      <button class="btn-primary" id="addActivityBtn" style="align-self:flex-start;">Log activity</button>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn-sm btn-won" id="markWon">Mark Won</button>
+    <button class="btn-sm btn-lost" style="border:1px solid var(--rust);" id="markLost">Mark Lost</button>
+    <button class="btn-sm btn-del" style="border:1px solid var(--line-dk);" id="deleteLead">Delete</button>
+  </div>
+</div>
+
+<div id="modalOverlay">
+  <div id="modal">
+    <h3>New Lead</h3>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Company name</label>
+      <input type="text" id="nCompany" placeholder="e.g. Air Lock Valves">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Category / Industry</label>
+        <input type="text" id="nCat" placeholder="e.g. Valve manufacturer">
+      </div>
+      <div class="field">
+        <label>City</label>
+        <input type="text" id="nCity" list="cityList" placeholder="e.g. Chennai">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Products</label>
+      <div class="chip-picker" id="nProductsPicker"></div>
+      <button type="button" class="chip-plus-btn" id="nProductAddTrigger">+ Add product</button>
+      <div class="chip-add-row" id="nProductAddRow" style="display:none;">
+        <input type="text" id="nProductNew" placeholder="New product name...">
+        <button type="button" id="nProductAddBtn">Add</button>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Requirement / notes</label>
+      <textarea id="nReq" rows="3" placeholder="Qty, specs, pricing, next step..."></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Next follow-up</label>
+        <input type="date" id="nFollowup">
+      </div>
+      <div class="field">
+        <label>Contact</label>
+        <input type="text" id="nContact" placeholder="Phone / email">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Follow-up task</label>
+        <input type="text" id="nFollowupTask" placeholder="What needs to happen?">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Assigned to</label>
+      <div class="chip-picker" id="nPersonPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="saveLeadBtn" style="flex:1;">Add lead</button>
+      <button class="btn-ghost" id="cancelModal" style="color:var(--ink); border-color:var(--line-dk);">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- shared RFLABS session guard ---------- */
+/* This tool shares its login with the rest of RFLABS' internal apps —      */
+/* if there's no valid session (established by logging in at /apps/),      */
+/* send the person there instead of showing a separate login form here.    */
+const SESSION_KEY = 'rflabs_identity_session';
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+const nexusSession = loadSession();
+if(!nexusSession || !nexusSession.access_token){
+  window.location.href = '/apps/';
+}
+
+/* ---------- storage adapter: talks to the Netlify Function, authenticated ---------- */
+/* ---------- via the same session /apps/ already established               ---------- */
+const NEXUS_API = '/.netlify/functions/nexus-data';
+async function authHeaders(){
+  const session = loadSession();
+  if(!session || !session.access_token) throw new Error('Not logged in');
+  return { 'Authorization': 'Bearer ' + session.access_token };
+}
+window.storage = {
+  async get(key){
+    const res = await fetch(`${NEXUS_API}?key=${encodeURIComponent(key)}`, {
+      headers: await authHeaders()
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(res.status === 404) return null;
+    if(!res.ok) throw new Error('Storage get failed: ' + res.status);
+    return await res.json(); // { key, value }
+  },
+  async set(key, value){
+    const res = await fetch(NEXUS_API, {
+      method: 'POST',
+      headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value })
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(!res.ok) return null;
+    return await res.json();
+  },
+  async delete(key){
+    const res = await fetch(`${NEXUS_API}?key=${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+      headers: await authHeaders()
+    });
+    if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
+    if(!res.ok) return null;
+    return await res.json();
+  }
+};
+
+const STAGES = [
+  {id:'new', name:'New Lead'},
+  {id:'appointment', name:'Appointment Set'},
+  {id:'requirement', name:'Requirement Captured'},
+  {id:'sample', name:'Sample / Trial Sent'},
+  {id:'quoted', name:'Quotation Sent'},
+  {id:'negotiation', name:'Negotiation'},
+  {id:'won', name:'Won'},
+];
+const STAGE_COLORS = {
+  new:'#9AA3AC', appointment:'#3E5568', requirement:'#5B7F97', sample:'#8E6C3A',
+  quoted:'#E2A33D', negotiation:'#C1512E', won:'#4C7A5E', lost:'#B7BABE'
+};
+let showLost = false;
+let mobileActiveStage = 'new';
+const STORAGE_KEY = 'nexus-leads-v1';
+const PRODUCTS_KEY = 'nexus-products-v1';
+const DEFAULT_PRODUCTS = ['Stretch film','EPE foam','Air bubble sheet','Fabric roll','EPE foam sheet'];
+let PRODUCTS = [];
+let nSelectedProducts = [];
+const PEOPLE_KEY = 'nexus-people-v1';
+const DEFAULT_PEOPLE = ['Vikram','Giri'];
+let PEOPLE = [];
+let nSelectedPerson = [];
+
+function fmtDate(d){ // d = Date
+  return d.toISOString().slice(0,10);
+}
+function addDays(n){
+  const d = new Date();
+  d.setDate(d.getDate()+n);
+  return fmtDate(d);
+}
+function todayStr(){ return fmtDate(new Date()); }
+function nowTime(){ return new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }
+function initials(name){
+  if(!name) return '—';
+  return name.slice(0,2).toUpperCase();
+}
+
+async function loadProducts(){
+  try{
+    const res = await window.storage.get(PRODUCTS_KEY, false);
+    if(res && res.value){
+      PRODUCTS = JSON.parse(res.value);
+    } else {
+      PRODUCTS = DEFAULT_PRODUCTS.slice();
+      await saveProducts();
+    }
+  }catch(e){
+    PRODUCTS = DEFAULT_PRODUCTS.slice();
+    try{ await saveProducts(); }catch(e2){}
+  }
+}
+async function saveProducts(){
+  try{ await window.storage.set(PRODUCTS_KEY, JSON.stringify(PRODUCTS), false); }
+  catch(e){ console.error('save products failed', e); }
+}
+function addProduct(name){
+  const clean = name.trim();
+  if(!clean) return null;
+  const existing = PRODUCTS.find(p=>p.toLowerCase()===clean.toLowerCase());
+  if(existing) return existing;
+  PRODUCTS.push(clean);
+  saveProducts();
+  return clean;
+}
+async function loadPeople(){
+  try{
+    const res = await window.storage.get(PEOPLE_KEY, false);
+    if(res && res.value){
+      PEOPLE = JSON.parse(res.value);
+    } else {
+      PEOPLE = DEFAULT_PEOPLE.slice();
+      await savePeople();
+    }
+  }catch(e){
+    PEOPLE = DEFAULT_PEOPLE.slice();
+    try{ await savePeople(); }catch(e2){}
+  }
+}
+async function savePeople(){
+  try{ await window.storage.set(PEOPLE_KEY, JSON.stringify(PEOPLE), false); }
+  catch(e){ console.error('save people failed', e); }
+}
+function addPerson(name){
+  const clean = name.trim();
+  if(!clean) return null;
+  const existing = PEOPLE.find(p=>p.toLowerCase()===clean.toLowerCase());
+  if(existing) return existing;
+  PEOPLE.push(clean);
+  savePeople();
+  return clean;
+}
+function renderChipPicker(containerId, sourceList, selectedArr, toggleCallback, emptyMsg){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = sourceList.map(p=>`<span class="chip ${selectedArr.includes(p)?'selected':''}" data-p="${p.replace(/"/g,'&quot;')}">${p}</span>`).join('') || `<span style="font-size:11.5px;color:var(--muted);">${emptyMsg || 'Nothing yet — add one below.'}</span>`;
+  el.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click', ()=> toggleCallback(c.dataset.p));
+  });
+}
+function refreshCityList(){
+  const cities = [...new Set(leads.map(l=>l.city).filter(Boolean))];
+  const dl = document.getElementById('cityList');
+  if(dl) dl.innerHTML = cities.map(c=>`<option value="${c}">`).join('');
+}
+
+/* ---------- follow-up automation ---------- */
+/* If a follow-up's date arrives and nothing was logged on/after that date,   */
+/* auto-write an "attention needed" note into the activity log and flag the   */
+/* lead. If something WAS logged, that's already visible in the log as-is —   */
+/* no flag is added. This only runs when someone has Nexus open (there's no   */
+/* background server here), so it catches up whenever the app is opened.     */
+function clearAttention(l){
+  l.attentionNeeded = false;
+}
+function checkFollowupsForAttention(){
+  const today = todayStr();
+  let changed = false;
+  leads.forEach(l=>{
+    if(!l.followup) return;
+    if(l.stage === 'won' || l.stage === 'lost') return;
+    if(l.followup > today) return; // not due yet
+    const addressed = l.activities.some(a => a.date >= l.followup && a.by !== 'System');
+    if(addressed){
+      if(l.attentionNeeded){ l.attentionNeeded = false; changed = true; }
+      return;
+    }
+    if(l.lastAttentionFlagged !== l.followup){
+      const who = l.followupOwner ? ` (assigned to ${l.followupOwner})` : '';
+      const what = l.followupTask ? ` — task: ${l.followupTask}` : '';
+      l.activities.push({
+        date: today, time: nowTime(), by: 'System',
+        text: `No follow-up done for ${l.followup}${who}${what} — attention needed.`
+      });
+      l.attentionNeeded = true;
+      l.lastAttentionFlagged = l.followup;
+      changed = true;
+    }
+  });
+  if(changed) saveData();
+}
+
+function seedData(){
+  const today = todayStr();
+  return [
+    {id:'l1', company:'Air Lock', category:'Valves manufacturer', products:['Stretch film','EPE foam'],
+     stage:'appointment', city:'', contact:'', followup:addDays(1),
+     followupTask:'Get specs of stretch film & EPE foam, and confirm quantities.', followupOwner:'Vikram',
+     requirement:'Get appointment to obtain specs of stretch film & EPE foam, and confirm quantities.',
+     activities:[{date:today, by:'Vikram', text:'Logged lead. Need to fix appointment tomorrow to get specs of stretch film and EPE foam, and get quantity. Vikram to study the company.'}]},
+
+    {id:'l2', company:'OCS', category:'Industry', products:['Stretch film','EPE foam','Air bubble sheet'],
+     stage:'appointment', city:'', contact:'', followup:addDays(1),
+     followupTask:'Call to capture requirement for stretch film, EPE foam, air bubble sheet.', followupOwner:'',
+     requirement:'Will share full requirement for stretch film, EPE foam and air bubble sheet tomorrow at 10 AM.',
+     activities:[{date:today, by:'Team', text:'Call scheduled tomorrow 10 AM to get requirement for stretch film, EPE and air bubble sheet.'}]},
+
+    {id:'l3', company:'Print Care', category:'Printing (T-bags)', products:['Stretch film'],
+     stage:'new', city:'', contact:'', followup:'',
+     followupTask:'Send email requesting an appointment.', followupOwner:'Vikram',
+     requirement:'Need stretch film for T-bag printing operation.',
+     activities:[{date:today, by:'Vikram', text:'To send email requesting an appointment.'}]},
+
+    {id:'l4', company:'Turbo Engg', category:'Air valve manufacturer', products:['Air bubble sheet'],
+     stage:'quoted', city:'', contact:'', followup:addDays(3),
+     followupTask:'Confirm monthly order quantity (15–20 nos).', followupOwner:'',
+     requirement:'Air bubble sheet — 15 to 20 nos per month. Payment terms 30 days. Price ₹1,550/- + tax.',
+     activities:[{date:today, by:'Team', text:'Quoted ₹1,550/- + tax per unit, 30-day payment terms. Awaiting confirmation on monthly order of 15–20 nos.'}]},
+
+    {id:'l5', company:'Schuf Speciality Valves Ind Pvt Ltd', category:'Valve manufacturer', products:[],
+     stage:'new', city:'', contact:'', followup:'',
+     followupTask:'', followupOwner:'',
+     requirement:'Requirement not yet captured — need to get in touch first.',
+     activities:[{date:today, by:'Team', text:'Have to get appointment by call or mail.'}]},
+
+    {id:'l6', company:'Theni Guru Krishna', category:'Fabric roll', products:['Fabric roll'],
+     stage:'sample', city:'Theni', contact:'', followup:addDays(2),
+     followupTask:'Follow up on sample feedback (machine grade check).', followupOwner:'',
+     requirement:'Machine-grade sample needed for their checking. Volume: 400–500 kg.',
+     activities:[{date:today, by:'Team', text:'Sending machine grade sample for checking. Quantity discussed: 400–500 kg.'}]},
+
+    {id:'l7', company:'Circor', category:'Valve manufacturer', products:[],
+     stage:'new', city:'', contact:'04212321600', followup:addDays(2),
+     followupTask:'Get appointment.', followupOwner:'Giri',
+     requirement:'Requirement not yet captured — appointment pending.',
+     activities:[{date:today, by:'Giri', text:'Giri to get appointment. Contact number on file: 04212321600.'}]},
+
+    {id:'l8', company:'Ingrande Furn', category:'Furniture', products:['EPE foam sheet'],
+     stage:'quoted', city:'', contact:'', followup:addDays(3),
+     followupTask:'Confirm order after quote.', followupOwner:'',
+     requirement:'EPE waste collection + 8mm foam sheet. Size 1.4w × 8mm thick × 50m L. Price: ₹4.60/unit → ₹2,576 total.',
+     activities:[{date:today, by:'Team', text:'Priced 8mm foam sheet (1.4w x 8mm x 50m) at ₹4.60 → total ₹2,576. Also handling their EPE waste collection.'}]},
+  ];
+}
+
+let leads = [];
+let currentView = 'board';
+let activeLeadId = null;
+
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      leads = JSON.parse(res.value);
+    } else {
+      leads = seedData();
+      await saveData();
+    }
+  }catch(e){
+    leads = seedData();
+    try{ await saveData(); }catch(e2){}
+  }
+  renderAll();
+}
+async function saveData(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(leads), false);
+  }catch(e){ console.error('save failed', e); }
+}
+
+function followupClass(dateStr){
+  if(!dateStr) return 'fu-none';
+  if(dateStr < todayStr()) return 'fu-overdue';
+  if(dateStr === todayStr() || dateStr === addDays(1)) return 'fu-today';
+  return 'fu-soon';
+}
+function followupLabel(dateStr){
+  if(!dateStr) return 'No date';
+  const t = todayStr();
+  if(dateStr < t) return 'Overdue · ' + dateStr;
+  if(dateStr === t) return 'Today';
+  if(dateStr === addDays(1)) return 'Tomorrow';
+  return dateStr;
+}
+
+function renderAll(){
+  renderBoard();
+  renderFollowups();
+  renderTable();
+  renderStats();
+  refreshCityList();
+}
+
+function renderStats(){
+  const open = leads.filter(l=>l.stage!=='won' && l.stage!=='lost');
+  document.getElementById('statTotal').textContent = open.length;
+  document.getElementById('statToday').textContent = open.filter(l=>l.followup===todayStr()).length;
+  document.getElementById('statOverdue').textContent = open.filter(l=>l.followup && l.followup<todayStr()).length;
+  document.getElementById('statWon').textContent = leads.filter(l=>l.stage==='won').length;
+}
+
+function cardHTML(l){
+  return `
+    <div class="card ${l.stage==='lost'?'lost':''}" draggable="true" data-id="${l.id}" style="border-left:4px solid ${STAGE_COLORS[l.stage]||'#ccc'};">
+      <div class="card-top">
+        <div>
+          <div class="card-company">${l.company}</div>
+          <div class="card-cat">${l.category||''}</div>
+        </div>
+      </div>
+      ${l.products.length? `<div class="tags">${l.products.map(p=>`<span class="tag">${p}</span>`).join('')}</div>` : ''}
+      ${l.requirement? `<div class="card-note">${l.requirement}</div>` : ''}
+      <div class="card-bottom">
+        <div class="avatar" title="${l.city||'No city set'}">${initials(l.city)}</div>
+        <div class="followup-badge ${followupClass(l.followup)}">${followupLabel(l.followup)}</div>
+      </div>
+      ${(l.followupTask || l.followupOwner) ? `<div class="card-followup-hint">${l.followupOwner ? `<b>${l.followupOwner}</b> · ` : ''}${l.followupTask || 'Follow up'}</div>` : ''}
+      ${l.attentionNeeded ? `<div class="attention-flag">⚠ Attention needed</div>` : ''}
+      <select class="stage-quick" data-id="${l.id}" aria-label="Move stage">
+        ${STAGES.map(s=>`<option value="${s.id}" ${s.id===l.stage?'selected':''}>Move to: ${s.name}</option>`).join('')}
+        <option value="lost" ${l.stage==='lost'?'selected':''}>Move to: Lost</option>
+      </select>
+    </div>`;
+}
+
+function renderBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const cols = showLost ? [...STAGES, {id:'lost', name:'Lost / On Hold'}] : STAGES;
+  cols.forEach((s,idx)=>{
+    const items = leads.filter(l=>l.stage===s.id);
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `
+      <div class="col-head">
+        <span class="idx mono">${String(idx+1).padStart(2,'0')}</span>
+        <span class="name">${s.name}</span>
+        <span class="count mono">${items.length}</span>
+      </div>
+      <div class="col-body" data-stage="${s.id}">
+        ${items.map(cardHTML).join('')}
+        ${s.id==='new' ? `<div class="add-lead-inline" data-add="1">+ Add lead</div>` : ''}
+      </div>`;
+    board.appendChild(col);
+  });
+
+  // drag events
+  document.querySelectorAll('.card').forEach(c=>{
+    c.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', c.dataset.id);
+    });
+    c.addEventListener('click', ()=> openPanel(c.dataset.id));
+  });
+  document.querySelectorAll('.stage-quick').forEach(sel=>{
+    sel.addEventListener('click', e=> e.stopPropagation());
+    sel.addEventListener('change', e=>{
+      e.stopPropagation();
+      const lead = leads.find(l=>l.id===sel.dataset.id);
+      if(lead){ lead.stage = sel.value; saveData(); renderAll(); }
+    });
+  });
+  document.querySelectorAll('.col-body').forEach(cb=>{
+    cb.addEventListener('dragover', e=>{ e.preventDefault(); cb.classList.add('dragover'); });
+    cb.addEventListener('dragleave', ()=> cb.classList.remove('dragover'));
+    cb.addEventListener('drop', e=>{
+      e.preventDefault();
+      cb.classList.remove('dragover');
+      const id = e.dataTransfer.getData('text/plain');
+      const stage = cb.dataset.stage;
+      const lead = leads.find(l=>l.id===id);
+      if(lead){ lead.stage = stage; saveData(); renderAll(); }
+    });
+  });
+  document.querySelectorAll('[data-add]').forEach(b=> b.addEventListener('click', openModal));
+
+  renderMobileBoard();
+}
+
+function renderMobileBoard(){
+  const tabsEl = document.getElementById('mobileTabs');
+  const listEl = document.getElementById('mobileList');
+  const tabStages = [...STAGES, {id:'lost', name:'Lost'}];
+  tabsEl.innerHTML = tabStages.map(s=>{
+    const count = leads.filter(l=>l.stage===s.id).length;
+    return `<button class="mtab ${mobileActiveStage===s.id?'active':''}" data-stage="${s.id}">${s.name}<span class="mtab-count">${count}</span></button>`;
+  }).join('');
+  tabsEl.querySelectorAll('.mtab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      mobileActiveStage = btn.dataset.stage;
+      renderMobileBoard();
+      btn.scrollIntoView({inline:'center', behavior:'smooth', block:'nearest'});
+    });
+  });
+
+  const items = leads.filter(l=>l.stage===mobileActiveStage);
+  listEl.innerHTML = items.length ? items.map(cardHTML).join('') : `<div class="mobile-empty">No leads in this stage yet.</div>`;
+  listEl.querySelectorAll('.card').forEach(c=>{
+    c.addEventListener('click', ()=> openPanel(c.dataset.id));
+  });
+  listEl.querySelectorAll('.stage-quick').forEach(sel=>{
+    sel.addEventListener('click', e=> e.stopPropagation());
+    sel.addEventListener('change', e=>{
+      e.stopPropagation();
+      const lead = leads.find(l=>l.id===sel.dataset.id);
+      if(lead){ lead.stage = sel.value; saveData(); renderAll(); }
+    });
+  });
+}
+
+let followupFilter = null; // null = show all sections; or 'overdue'/'today'/'later'/'none'
+const FOLLOWUP_SECTIONS = {
+  overdue: {sectionId:'fvSectionOverdue', label:'Overdue'},
+  today:   {sectionId:'fvSectionToday',   label:'Today & Tomorrow'},
+  later:   {sectionId:'fvSectionLater',   label:'Later'},
+  none:    {sectionId:'fvSectionNone',    label:'No follow-up set'},
+};
+function renderFollowups(){
+  const overdue = [], today = [], later = [], none = [];
+  leads.filter(l=>l.stage!=='won' && l.stage!=='lost').forEach(l=>{
+    if(!l.followup) none.push(l);
+    else if(l.followup < todayStr()) overdue.push(l);      // date string earlier than today → overdue
+    else if(l.followup === todayStr() || l.followup === addDays(1)) today.push(l); // due today or tomorrow
+    else later.push(l);                                     // due later than tomorrow
+  });
+  const rowHTML = l => {
+    const taskLine = (l.followupTask || l.followupOwner)
+      ? `${l.followupOwner ? `<b>${l.followupOwner}</b>: ` : ''}${l.followupTask || 'Follow up'}`
+      : (l.activities[l.activities.length-1]?.text || '');
+    return `
+    <div class="fv-row" data-id="${l.id}">
+      <div class="fv-company">${l.company}</div>
+      <div class="fv-stage">${STAGES.find(s=>s.id===l.stage).name}</div>
+      <div class="fv-note">${taskLine}</div>
+      <div class="fv-date mono">${followupLabel(l.followup)}</div>
+    </div>`;
+  };
+  document.getElementById('fvOverdue').innerHTML = overdue.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">Nothing overdue.</div>';
+  document.getElementById('fvToday').innerHTML = today.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">Nothing due today or tomorrow.</div>';
+  document.getElementById('fvLater').innerHTML = later.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">—</div>';
+  document.getElementById('fvNone').innerHTML = none.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">—</div>';
+  document.querySelectorAll('.fv-row').forEach(r=> r.addEventListener('click', ()=> openPanel(r.dataset.id)));
+
+  // show only the matching section when a filter is active; otherwise show the full stacked overview
+  Object.keys(FOLLOWUP_SECTIONS).forEach(key=>{
+    document.getElementById(FOLLOWUP_SECTIONS[key].sectionId).style.display =
+      (!followupFilter || followupFilter === key) ? '' : 'none';
+  });
+}
+
+let tableFilter = null; // null = show all, or a stage id like 'won'
+function renderTable(){
+  const tbody = document.getElementById('tableBody');
+  const rows = tableFilter ? leads.filter(l=>l.stage===tableFilter) : leads;
+  tbody.innerHTML = rows.map(l=>{
+    const lastAct = l.activities[l.activities.length-1];
+    return `<tr data-id="${l.id}">
+      <td><strong>${l.company}</strong></td>
+      <td>${l.category||''}</td>
+      <td>${l.products.join(', ')}</td>
+      <td>${STAGES.find(s=>s.id===l.stage)?.name || l.stage}</td>
+      <td>${l.city||'—'}</td>
+      <td class="mono">${followupLabel(l.followup)}</td>
+      <td>${lastAct ? lastAct.date+(lastAct.time?' '+lastAct.time:'')+' — '+lastAct.text : ''}</td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#tableBody tr').forEach(r=> r.addEventListener('click', ()=> openPanel(r.dataset.id)));
+}
+
+/* ---------- Panel ---------- */
+function openPanel(id){
+  activeLeadId = id;
+  const l = leads.find(x=>x.id===id);
+  if(!l) return;
+  document.getElementById('pCompany').textContent = l.company;
+  document.getElementById('pCat').textContent = [l.category, l.products.join(', ')].filter(Boolean).join(' · ');
+  const stageSel = document.getElementById('pStage');
+  stageSel.innerHTML = STAGES.map(s=>`<option value="${s.id}" ${s.id===l.stage?'selected':''}>${s.name}</option>`).join('') + `<option value="lost" ${l.stage==='lost'?'selected':''}>Lost</option>`;
+  document.getElementById('pCity').value = l.city || '';
+  document.getElementById('pFollowup').value = l.followup || '';
+  document.getElementById('pFollowupTask').value = l.followupTask || '';
+  refreshPanelPerson();
+  document.getElementById('pRequirement').value = l.requirement || '';
+  document.getElementById('pContact').value = l.contact || '';
+  const banner = document.getElementById('pAttentionBanner');
+  if(l.attentionNeeded){
+    banner.style.display = 'flex';
+    banner.innerHTML = `⚠️ No follow-up was logged for ${l.lastAttentionFlagged || l.followup} — this needs attention.`;
+  } else {
+    banner.style.display = 'none';
+  }
+  const qaCall = document.getElementById('qaCallBtn');
+  const phoneMatch = (l.contact || '').match(/[\d+][\d\s-]{6,}/);
+  if(phoneMatch){
+    qaCall.style.display = 'flex';
+    qaCall.href = 'tel:' + phoneMatch[0].replace(/[\s-]/g,'');
+  } else {
+    qaCall.style.display = 'none';
+    qaCall.href = '#';
+  }
+  document.getElementById('pProductNew').value = '';
+  document.getElementById('pProductAddRow').style.display = 'none';
+  refreshPanelProducts();
+  document.getElementById('pTimeline').innerHTML = l.activities.slice().reverse().map(a=>`
+    <div class="tl-item">
+      <span class="tl-date">${a.date}${a.time ? ' · ' + a.time : ''}</span><span class="tl-by">${a.by}</span>
+      <div class="tl-text">${a.text}</div>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--muted);">No activity logged yet.</div>';
+  document.getElementById('pNewActivity').value = '';
+  document.getElementById('overlay').style.display = 'block';
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('panel').classList.remove('open');
+  activeLeadId = null;
+}
+document.getElementById('closePanel').addEventListener('click', closePanel);
+document.getElementById('overlay').addEventListener('click', closePanel);
+
+document.getElementById('pStage').addEventListener('change', e=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.stage = e.target.value; saveData(); renderAll();
+});
+document.getElementById('pCity').addEventListener('change', e=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.city = e.target.value.trim(); saveData(); renderAll();
+});
+function refreshPanelProducts(){
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  renderChipPicker('pProductsPicker', PRODUCTS, l.products, (p)=>{
+    const idx = l.products.indexOf(p);
+    if(idx>-1) l.products.splice(idx,1); else l.products.push(p);
+    saveData(); refreshPanelProducts(); renderAll();
+  }, 'No products yet — add one below.');
+}
+document.getElementById('pProductAddTrigger').addEventListener('click', ()=>{
+  const row = document.getElementById('pProductAddRow');
+  const opening = row.style.display === 'none';
+  row.style.display = opening ? 'flex' : 'none';
+  if(opening) document.getElementById('pProductNew').focus();
+});
+document.getElementById('pProductAddBtn').addEventListener('click', ()=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  const input = document.getElementById('pProductNew');
+  const p = addProduct(input.value);
+  if(!p) return;
+  if(!l.products.includes(p)) l.products.push(p);
+  input.value='';
+  document.getElementById('pProductAddRow').style.display = 'none';
+  saveData(); refreshPanelProducts(); renderAll();
+});
+document.getElementById('pProductNew').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('pProductAddBtn').click(); }
+});
+function refreshPanelPerson(){
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  const selected = l.followupOwner ? [l.followupOwner] : [];
+  renderChipPicker('pPersonPicker', PEOPLE, selected, (p)=>{
+    l.followupOwner = (l.followupOwner === p) ? '' : p; // click again to unassign
+    clearAttention(l);
+    saveData(); refreshPanelPerson(); renderAll();
+  }, 'No one to assign.');
+}
+document.getElementById('pFollowupTaskBtn').addEventListener('click', ()=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.followupTask = document.getElementById('pFollowupTask').value.trim();
+  clearAttention(l);
+  saveData(); renderAll();
+});
+document.getElementById('pRequirementBtn').addEventListener('click', ()=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.requirement = document.getElementById('pRequirement').value.trim();
+  saveData(); renderAll();
+});
+document.getElementById('pFollowup').addEventListener('change', e=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.followup = e.target.value;
+  clearAttention(l);
+  saveData(); renderAll(); openPanel(activeLeadId);
+});
+document.getElementById('pContact').addEventListener('change', e=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.contact = e.target.value; saveData();
+});
+/* ---------- custom calendar popover (doesn't depend on native <input type=date> support) ---------- */
+const WEEKDAY_LABELS = ['S','M','T','W','T','F','S'];
+function renderCalendar(popoverEl, selectedStr, viewDate, onSelect){
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const startWeekday = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const monthName = viewDate.toLocaleString('default', {month:'long'});
+  const todayIso = todayStr();
+  let html = `<div class="cal-head">
+    <button type="button" class="cal-nav" data-dir="-1">&lsaquo;</button>
+    <span class="cal-title">${monthName} ${year}</span>
+    <button type="button" class="cal-nav" data-dir="1">&rsaquo;</button>
+  </div>
+  <div class="cal-weekdays">${WEEKDAY_LABELS.map(d=>`<span>${d}</span>`).join('')}</div>
+  <div class="cal-days">`;
+  for(let i=0;i<startWeekday;i++) html += `<span class="cal-day empty"></span>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cls = ['cal-day'];
+    if(dateStr === todayIso) cls.push('today');
+    if(dateStr === selectedStr) cls.push('selected');
+    html += `<button type="button" class="${cls.join(' ')}" data-date="${dateStr}">${d}</button>`;
+  }
+  html += `</div>`;
+  popoverEl.innerHTML = html;
+  popoverEl.querySelectorAll('.cal-nav').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const next = new Date(viewDate);
+      next.setMonth(next.getMonth() + parseInt(btn.dataset.dir, 10));
+      renderCalendar(popoverEl, selectedStr, next, onSelect);
+    });
+  });
+  popoverEl.querySelectorAll('.cal-day:not(.empty)').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      onSelect(btn.dataset.date);
+    });
+  });
+}
+function attachDatePicker(wrapId, inputId){
+  const wrap = document.getElementById(wrapId);
+  const input = document.getElementById(inputId);
+  if(!wrap || !input) return;
+  const popover = document.createElement('div');
+  popover.className = 'cal-popover';
+  wrap.appendChild(popover);
+  function positionPopover(){
+    const rect = wrap.getBoundingClientRect();
+    const popH = popover.offsetHeight;
+    const popW = popover.offsetWidth;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = (spaceBelow < popH + 10 && rect.top > popH + 10)
+      ? rect.top - popH - 6   // not enough room below → flip above the field
+      : rect.bottom + 6;
+    let left = rect.left;
+    const maxLeft = window.innerWidth - popW - 10;
+    if(left > maxLeft) left = Math.max(10, maxLeft);
+    popover.style.top = top + 'px';
+    popover.style.left = left + 'px';
+  }
+  function openCal(){
+    const selected = input.value || null;
+    const viewDate = selected ? new Date(selected + 'T00:00:00') : new Date();
+    renderCalendar(popover, selected, viewDate, (dateStr)=>{
+      input.value = dateStr;
+      input.dispatchEvent(new Event('change'));
+      popover.style.display = 'none';
+    });
+    popover.style.visibility = 'hidden';
+    popover.style.display = 'block';
+    positionPopover();
+    popover.style.visibility = 'visible';
+  }
+  wrap.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(popover.style.display === 'block'){ popover.style.display = 'none'; }
+    else { openCal(); }
+  });
+  document.addEventListener('click', (e)=>{
+    if(!wrap.contains(e.target) && e.target !== popover && !popover.contains(e.target)){
+      popover.style.display = 'none';
+    }
+  });
+  // scrolling (e.g. the panel body) would leave a fixed-position popover behind — just close it
+  window.addEventListener('scroll', ()=>{ popover.style.display = 'none'; }, true);
+  window.addEventListener('resize', ()=>{ popover.style.display = 'none'; });
+}
+attachDatePicker('pFollowupWrap', 'pFollowup');
+
+document.getElementById('addActivityBtn').addEventListener('click', ()=>{
+  const text = document.getElementById('pNewActivity').value.trim();
+  if(!text) return;
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.activities.push({date: todayStr(), time: nowTime(), by: 'Team', text});
+  // logging any activity on/after the due date counts as addressing the follow-up
+  if(l.followup && todayStr() >= l.followup){
+    clearAttention(l);
+  }
+  document.getElementById('pNewActivity').value = '';
+  saveData();
+  openPanel(activeLeadId);
+  renderAll();
+});
+document.getElementById('markWon').addEventListener('click', ()=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.stage='won'; saveData(); renderAll(); closePanel();
+});
+document.getElementById('markLost').addEventListener('click', ()=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  l.stage='lost'; saveData(); renderAll(); closePanel();
+});
+document.getElementById('deleteLead').addEventListener('click', ()=>{
+  leads = leads.filter(x=>x.id!==activeLeadId);
+  saveData(); renderAll(); closePanel();
+});
+
+/* ---------- New lead modal ---------- */
+function openModal(){
+  document.getElementById('nCompany').value='';
+  document.getElementById('nCat').value='';
+  document.getElementById('nCity').value='';
+  document.getElementById('nProductNew').value='';
+  document.getElementById('nProductAddRow').style.display = 'none';
+  document.getElementById('nReq').value='';
+  document.getElementById('nFollowup').value='';
+  document.getElementById('nFollowupTask').value='';
+  document.getElementById('nContact').value='';
+  nSelectedProducts = [];
+  nSelectedPerson = [];
+  refreshModalProducts();
+  refreshModalPerson();
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function refreshModalProducts(){
+  renderChipPicker('nProductsPicker', PRODUCTS, nSelectedProducts, (p)=>{
+    const idx = nSelectedProducts.indexOf(p);
+    if(idx>-1) nSelectedProducts.splice(idx,1); else nSelectedProducts.push(p);
+    refreshModalProducts();
+  }, 'No products yet — add one below.');
+}
+document.getElementById('nProductAddTrigger').addEventListener('click', ()=>{
+  const row = document.getElementById('nProductAddRow');
+  const opening = row.style.display === 'none';
+  row.style.display = opening ? 'flex' : 'none';
+  if(opening) document.getElementById('nProductNew').focus();
+});
+document.getElementById('nProductAddBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('nProductNew');
+  const p = addProduct(input.value);
+  if(!p) return;
+  if(!nSelectedProducts.includes(p)) nSelectedProducts.push(p);
+  input.value='';
+  document.getElementById('nProductAddRow').style.display = 'none';
+  refreshModalProducts();
+});
+document.getElementById('nProductNew').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('nProductAddBtn').click(); }
+});
+function refreshModalPerson(){
+  renderChipPicker('nPersonPicker', PEOPLE, nSelectedPerson, (p)=>{
+    nSelectedPerson = (nSelectedPerson[0] === p) ? [] : [p]; // single-select
+    refreshModalPerson();
+  }, 'No one to assign.');
+}
+document.getElementById('newLeadBtn').addEventListener('click', openModal);
+document.getElementById('cancelModal').addEventListener('click', ()=> document.getElementById('modalOverlay').style.display='none');
+document.getElementById('saveLeadBtn').addEventListener('click', ()=>{
+  const company = document.getElementById('nCompany').value.trim();
+  if(!company){ alert('Company name is required.'); return; }
+  const l = {
+    id: 'l'+Date.now(),
+    company,
+    category: document.getElementById('nCat').value.trim(),
+    products: nSelectedProducts.slice(),
+    stage: 'new',
+    city: document.getElementById('nCity').value.trim(),
+    contact: document.getElementById('nContact').value.trim(),
+    followup: document.getElementById('nFollowup').value,
+    followupTask: document.getElementById('nFollowupTask').value.trim(),
+    followupOwner: nSelectedPerson[0] || '',
+    attentionNeeded: false,
+    lastAttentionFlagged: null,
+    requirement: document.getElementById('nReq').value.trim(),
+    activities: document.getElementById('nReq').value.trim() ? [{date: todayStr(), time: nowTime(), by: 'Team', text: document.getElementById('nReq').value.trim()}] : []
+  };
+  leads.push(l);
+  saveData();
+  document.getElementById('modalOverlay').style.display='none';
+  renderAll();
+});
+
+/* ---------- View toggle (drives both header tabs and drawer nav) ---------- */
+function switchView(view){
+  currentView = view;
+  document.querySelectorAll('[data-view]').forEach(el=> el.classList.toggle('active', el.dataset.view===view));
+  document.getElementById('board').style.display = currentView==='board' ? '' : 'none';
+  document.getElementById('mobileBoard').style.display = currentView==='board' ? '' : 'none';
+  document.getElementById('mobileFab').style.display = currentView==='board' ? '' : 'none';
+  document.getElementById('followupView').style.display = currentView==='followup' ? 'block' : 'none';
+  document.getElementById('tableView').style.display = currentView==='table' ? 'block' : 'none';
+}
+document.querySelectorAll('[data-view]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    tableFilter = null;
+    followupFilter = null;
+    switchView(b.dataset.view);
+    renderFollowups();
+    renderTable();
+    closeDrawer();
+  });
+});
+
+document.getElementById('statOpenBtn').addEventListener('click', ()=>{
+  tableFilter = null;
+  switchView('board');
+});
+document.getElementById('statWonBtn').addEventListener('click', ()=>{
+  switchView('table');
+  tableFilter = 'won';
+  renderTable();
+});
+document.getElementById('statDueBtn').addEventListener('click', ()=>{
+  tableFilter = null;
+  switchView('followup');
+  followupFilter = 'today';
+  renderFollowups();
+});
+document.getElementById('statOverdueBtn').addEventListener('click', ()=>{
+  tableFilter = null;
+  switchView('followup');
+  followupFilter = 'overdue';
+  renderFollowups();
+});
+
+document.getElementById('mobileFab').addEventListener('click', openModal);
+
+function toggleShowLost(){
+  showLost = !showLost;
+  document.getElementById('showLostBtn').classList.toggle('active-toggle', showLost);
+  document.getElementById('drawerShowLostLabel').textContent = showLost ? 'Hide Lost' : 'Show Lost';
+  document.getElementById('drawerShowLostBtn').classList.toggle('active', showLost);
+  renderBoard();
+}
+document.getElementById('showLostBtn').addEventListener('click', toggleShowLost);
+document.getElementById('drawerShowLostBtn').addEventListener('click', ()=>{ toggleShowLost(); closeDrawer(); });
+
+async function resetDemoData(){
+  if(!confirm('Reset to the original demo leads? This clears any edits.')) return;
+  leads = seedData();
+  await saveData();
+  renderAll();
+}
+document.getElementById('resetBtn').addEventListener('click', resetDemoData);
+document.getElementById('drawerResetBtn').addEventListener('click', ()=>{ resetDemoData(); closeDrawer(); });
+
+/* ---------- Mobile drawer ---------- */
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+document.getElementById('drawerOpenBtn').addEventListener('click', openDrawer);
+document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+
+(async function init(){
+  await loadProducts();
+  await loadPeople();
+  await loadData();
+  checkFollowupsForAttention();
+  renderAll();
+})();
+</script>
+</body>
+</html>
