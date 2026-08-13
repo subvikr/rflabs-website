@@ -665,7 +665,6 @@
   <div class="drawer-section-lbl">Options</div>
   <nav class="drawer-nav">
     <button class="drawer-nav-item" id="drawerShowLostBtn"><span class="dn-icon">⚑</span><span id="drawerShowLostLabel">Show Lost</span></button>
-    <button class="drawer-nav-item" id="drawerResetBtn"><span class="dn-icon">↺</span>Reset demo data</button>
   </nav>
 </aside>
 <div id="mobileTopbar" class="mobile-only">
@@ -689,7 +688,6 @@
       <button data-view="table">All Leads</button>
     </div>
     <button class="btn-ghost" id="showLostBtn">☰ <span class="btn-label">Show Lost</span></button>
-    <button class="btn-ghost" id="resetBtn">↺ <span class="btn-label">Reset demo data</span></button>
     <button class="btn-primary" id="newLeadBtn">+ New Lead</button>
   </div>
 </header>
@@ -1126,17 +1124,20 @@ let leads = [];
 let currentView = 'board';
 let activeLeadId = null;
 
+function isLocalHost(){
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
 async function loadData(){
   try{
     const res = await window.storage.get(STORAGE_KEY, false);
     if(res && res.value){
       leads = JSON.parse(res.value);
     } else {
-      leads = seedData();
+      leads = isLocalHost() ? seedData() : [];
       await saveData();
     }
   }catch(e){
-    leads = seedData();
+    leads = isLocalHost() ? seedData() : [];
     try{ await saveData(); }catch(e2){}
   }
   renderAll();
@@ -1708,15 +1709,6 @@ function toggleShowLost(){
 }
 document.getElementById('showLostBtn').addEventListener('click', toggleShowLost);
 document.getElementById('drawerShowLostBtn').addEventListener('click', ()=>{ toggleShowLost(); closeDrawer(); });
-
-async function resetDemoData(){
-  if(!confirm('Reset to the original demo leads? This clears any edits.')) return;
-  leads = seedData();
-  await saveData();
-  renderAll();
-}
-document.getElementById('resetBtn').addEventListener('click', resetDemoData);
-document.getElementById('drawerResetBtn').addEventListener('click', ()=>{ resetDemoData(); closeDrawer(); });
 
 /* ---------- Mobile drawer ---------- */
 function openDrawer(){
