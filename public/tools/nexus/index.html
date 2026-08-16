@@ -1,13 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXUS ΓÇö Lead Funnel</title>
+<title>NEXUS — Lead Funnel</title>
 <script>
-// Redirect to the shared RFLABS login before the page paints, so a signed-out
-// visitor never sees a flash of lead data. authoritative check happens again
-// in the main script (this is purely to avoid the flash).
 (function(){
   try{
     var raw = localStorage.getItem('rflabs_identity_session');
@@ -36,7 +33,7 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--bg);
+    background:linear-gradient(135deg, #EAF3FC 0%, #F3EFFB 45%, #FDF3E9 75%, #EFFBF3 100%);
     color:var(--ink);
     font-family:'IBM Plex Sans', sans-serif;
     -webkit-font-smoothing:antialiased;
@@ -49,18 +46,76 @@
   .mono{font-family:'IBM Plex Mono', monospace;}
   .disp{font-family:'Space Grotesk', sans-serif;}
 
+  /* ---------- App shell: persistent sidebar + main content ---------- */
+  #appShell{display:flex; flex:1; min-height:0;}
+  #sidebar{
+    width:230px; flex-shrink:0; background:#FFFFFF; border-right:1px solid var(--line);
+    display:flex; flex-direction:column; padding:20px 14px;
+    position:relative; transition:width 0.18s ease, padding 0.18s ease;
+  }
+  #sidebarCollapseBtn{
+    position:absolute; top:22px; right:-11px; width:22px; height:22px; border-radius:50%;
+    background:#fff; border:1px solid var(--line-dk); display:flex; align-items:center; justify-content:center;
+    font-size:12px; color:#4A5560; cursor:pointer; z-index:5; padding:0; line-height:1;
+  }
+  #sidebarCollapseBtn:hover{border-color:var(--steel); color:var(--steel);}
+  .sidebar-logo{display:flex; align-items:center; gap:10px; padding:0 6px 22px;}
+  .sidebar-mark{
+    width:34px; height:34px; border-radius:9px; background:#1B222B; color:#fff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px;
+  }
+  .sidebar-name{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color:#1B222B; letter-spacing:0.3px;}
+  .sidebar-tagline{font-size:10.5px; color:var(--amber); font-weight:600; margin-top:1px;}
+  .sidebar-nav{display:flex; flex-direction:column; gap:2px;}
+  .sidebar-nav-item{
+    display:flex; align-items:center; gap:11px; width:100%;
+    background:none; border:none; text-align:left; cursor:pointer;
+    padding:10px 12px; border-radius:9px; font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px; font-weight:600; color:#4A5560;
+  }
+  .sidebar-nav-item:hover{background:#F5F6F5;}
+  .sidebar-nav-item.active{background:#EFF0EF; color:#1B222B;}
+  .sn-icon{font-size:15px; width:18px; text-align:center; flex-shrink:0;}
+  .sidebar-spacer{flex:1;}
+  .sidebar-divider{height:1px; background:var(--line); margin:14px 8px 12px;}
+  .sidebar-footer{display:flex; align-items:center; gap:10px; padding:2px 6px;}
+  .sidebar-footer-avatar{
+    width:30px; height:30px; border-radius:50%; background:var(--steel); color:#fff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px;
+  }
+  .sidebar-footer-name{font-size:12.5px; font-weight:700; color:#1B222B;}
+  .sidebar-footer-sub{font-size:10.5px; color:var(--muted); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px;}
+  .app-main{flex:1; min-width:0; display:flex; flex-direction:column;}
+
+  /* collapsed sidebar: icon rail only */
+  #sidebar.collapsed{width:66px; padding:20px 10px;}
+  #sidebar.collapsed #sidebarCollapseBtn{transform:rotate(180deg);}
+  #sidebar.collapsed .sidebar-logo{justify-content:center; padding:0 0 22px;}
+  #sidebar.collapsed .sidebar-logo-text,
+  #sidebar.collapsed .sn-label,
+  #sidebar.collapsed .sidebar-footer-text{display:none;}
+  #sidebar.collapsed .sidebar-nav-item{justify-content:center; padding:10px 0;}
+  #sidebar.collapsed .sidebar-footer{justify-content:center;}
+  #sidebar.collapsed .sidebar-divider{margin:14px 4px 12px;}
+
   /* ---------- Header ---------- */
   header{
-    background:var(--steel-dk);
-    color:#F2F4F3;
+    background:#FFFFFF;
+    color:#1B222B;
     padding:12px 16px;
     display:flex;
     flex-wrap:wrap;
     align-items:center;
     gap:10px 16px;
     flex-shrink:0;
-    border-bottom:3px solid var(--amber);
     row-gap:10px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  }
+  #headerStrip{
+    height:4px; flex-shrink:0;
+    background:linear-gradient(90deg, #B9D9F5, #C7B8F2, #F5B0C4, #F2DB88, #A9E0BE);
   }
   .logo{
     font-family:'Space Grotesk', sans-serif;
@@ -70,12 +125,13 @@
     display:flex;
     align-items:baseline;
     gap:8px;
+    color:#1B222B;
   }
   .logo span{
     font-family:'IBM Plex Mono', monospace;
     font-weight:400;
     font-size:11px;
-    color:#9FB3BF;
+    color:#8A96A3;
     letter-spacing:1px;
   }
   .stats{
@@ -85,21 +141,36 @@
   }
   .stat{
     padding:2px 18px;
-    border-left:1px solid rgba(255,255,255,0.15);
+    border-left:1px solid rgba(0,0,0,0.1);
     background:none; border-top:none; border-right:none; border-bottom:none;
     cursor:pointer; text-align:left; font-family:inherit; border-radius:4px;
     transition:background 0.12s ease;
   }
-  .stat:hover{background:rgba(255,255,255,0.06);}
-  .stat .num{font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:600; line-height:1;}
-  .stat .lbl{font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:#9FB3BF; margin-top:3px;}
-  .stat.due .num{color:var(--amber);}
-  .stat.overdue .num{color:#E8836A;}
+  .stat:hover{background:rgba(0,0,0,0.04);}
+  .stat .num{font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:600; line-height:1; color:#1B222B;}
+  .stat .lbl{font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:#8A96A3; margin-top:3px;}
+  .stat.due .num{color:#C8860A;}
+  .stat.overdue .num{color:#D14F3A;}
 
   .header-actions{margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .search-bar{position:relative; display:flex; align-items:center; margin-left:12px;}
+  .search-bar .search-icon{position:absolute; left:10px; font-size:12px; pointer-events:none; opacity:0.6;}
+  .search-bar input{
+    width:190px; border:1px solid rgba(0,0,0,0.14); border-radius:7px;
+    padding:8px 30px 8px 30px; font-family:'IBM Plex Sans', sans-serif; font-size:12.5px;
+    background:#F5F6F5; color:#1B222B;
+  }
+  .search-bar input:focus{outline:none; border-color:var(--steel); background:#FFFFFF;}
+  .search-bar .search-clear{
+    display:none; position:absolute; right:6px; background:none; border:none;
+    color:#8A96A3; font-size:15px; cursor:pointer; line-height:1; padding:2px 4px;
+  }
+  .search-bar.has-text .search-clear{display:block;}
+  #mobileSearchRow{margin:0; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--line);}
+  #mobileSearchRow input{width:100%; background:var(--bg); border-color:var(--line-dk); color:var(--ink);}
   .view-toggle{
     display:flex;
-    background:rgba(255,255,255,0.08);
+    background:#F1F2F1;
     border-radius:6px;
     padding:3px;
     gap:2px;
@@ -107,7 +178,7 @@
   .view-toggle button{
     background:transparent;
     border:none;
-    color:#B9C6CC;
+    color:#6B7480;
     font-family:'IBM Plex Sans', sans-serif;
     font-size:12.5px;
     font-weight:500;
@@ -116,7 +187,7 @@
     cursor:pointer;
     min-height:36px;
   }
-  .view-toggle button.active{background:var(--surface); color:var(--steel-dk);}
+  .view-toggle button.active{background:#FFFFFF; color:#1B222B; box-shadow:0 1px 2px rgba(0,0,0,0.08);}
   .btn-primary{
     background:var(--amber);
     color:#241705;
@@ -130,17 +201,18 @@
     white-space:nowrap;
   }
   .btn-primary:hover{filter:brightness(1.06);}
-  .btn-ghost.active-toggle{background:rgba(226,163,61,0.18); border-color:var(--amber); color:var(--amber);}
+  .btn-ghost.active-toggle{background:rgba(226,163,61,0.14); border-color:var(--amber); color:#9A6A0F;}
   .btn-ghost{
     background:transparent;
-    border:1px solid rgba(255,255,255,0.25);
-    color:#E9EDEC;
+    border:1px solid rgba(0,0,0,0.15);
+    color:#4A5560;
     font-family:'IBM Plex Sans', sans-serif;
     font-size:12.5px;
     padding:8px 13px;
     border-radius:6px;
     cursor:pointer;
   }
+  .btn-ghost:hover{border-color:rgba(0,0,0,0.3); background:rgba(0,0,0,0.03);}
 
   /* ---------- Mobile pipeline (HubSpot-style) ---------- */
   .mobile-only{display:none;}
@@ -191,43 +263,43 @@
   main{flex:1; overflow:hidden; position:relative;}
   #board{
     height:100%;
-    display:flex;
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:1fr;
     gap:14px;
-    padding:16px 16px 0 16px;
-    overflow-x:auto;
+    padding:16px 16px 0 32px;
+    overflow-x:hidden;
     overflow-y:hidden;
-    -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x proximity;
   }
   .col{
-    flex:0 0 272px;
+    min-width:0;
     display:flex;
     flex-direction:column;
     height:100%;
     min-height:0;
-    scroll-snap-align:start;
   }
   .col-head{
     display:flex;
     align-items:baseline;
     gap:8px;
     padding:2px 4px 10px 2px;
-    border-bottom:2px solid var(--ink);
+    border-bottom:3px solid #E3E5E4;
     margin-bottom:10px;
   }
   .col-head .idx{
     font-family:'IBM Plex Mono', monospace;
     font-size:11px;
-    color:var(--muted);
-    background:var(--surface);
-    border:1px solid var(--line-dk);
-    border-radius:3px;
-    padding:1px 5px;
+    color:#6B7480;
+    background:#F1F2F1;
+    border:1px solid rgba(0,0,0,0.08);
+    border-radius:5px;
+    padding:1px 6px;
   }
   .col-head .name{
     font-family:'Space Grotesk', sans-serif;
     font-weight:600;
     font-size:13.5px;
+    color:#1B222B;
     text-transform:uppercase;
     letter-spacing:0.4px;
   }
@@ -235,8 +307,16 @@
     margin-left:auto;
     font-family:'IBM Plex Mono', monospace;
     font-size:12px;
-    color:var(--muted);
+    color:#8A96A3;
   }
+  .col-head.stage-new{border-bottom-color:#B9D9F5;}
+  .col-head.stage-appointment{border-bottom-color:#F5C79A;}
+  .col-head.stage-requirement{border-bottom-color:#C7B8F2;}
+  .col-head.stage-sample{border-bottom-color:#A9E0BE;}
+  .col-head.stage-quoted{border-bottom-color:#F2DB88;}
+  .col-head.stage-negotiation{border-bottom-color:#F5B0C4;}
+  .col-head.stage-won{border-bottom-color:#9FDDA8;}
+  .col-head.stage-lost{border-bottom-color:#C9C9C9;}
   .col-body{
     flex:1;
     overflow-y:auto;
@@ -248,49 +328,101 @@
   .col-body.dragover{background:rgba(62,85,104,0.06); border-radius:8px;}
 
   .card{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:11px 12px 10px 12px;
+    background:#FFFFFF;
+    border:1px solid rgba(0,0,0,0.06);
+    border-radius:16px;
+    padding:5px;
     cursor:grab;
-    box-shadow:var(--card-shadow);
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
     position:relative;
+    transition:box-shadow 0.18s ease, transform 0.18s ease, padding 0.3s ease;
+  }
+  .card:hover, .card:focus-within{
+    box-shadow:0 8px 20px rgba(0,0,0,0.12); transform:translateY(-1px); padding:10px;
   }
   .card:active{cursor:grabbing;}
   .card.lost{opacity:0.5;}
+  .card-color-zone{border-radius:11px; padding:11px 12px;}
   .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:6px;}
-  .card-company{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14px; line-height:1.25;}
-  .card-cat{font-size:11px; color:var(--muted); margin-top:1px;}
-  .tags{display:flex; flex-wrap:wrap; gap:4px; margin-top:7px;}
+  .card-company{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; line-height:1.25; color:#1B222B;}
+  .card-cat{font-size:11.5px; color:rgba(27,34,43,0.62); margin-top:1px;}
+  .card-tags-note{
+    max-height:0; opacity:0; overflow:hidden;
+    transition:max-height 0.3s ease, opacity 0.22s ease, margin-top 0.3s ease;
+  }
+  .card:hover .card-tags-note, .card:focus-within .card-tags-note{
+    max-height:200px; opacity:1; margin-top:9px;
+  }
+  .card-footer-zone{
+    max-height:0; opacity:0; overflow:hidden; padding:0 4px;
+    transition:max-height 0.3s ease, opacity 0.22s ease, margin-top 0.3s ease;
+  }
+  .card:hover .card-footer-zone, .card:focus-within .card-footer-zone{
+    max-height:220px; opacity:1; margin-top:10px;
+  }
+  .tags{display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;}
   .tag{
     font-size:10px;
-    background:#EAF0F2;
-    color:var(--steel-dk);
-    border-radius:3px;
-    padding:2px 6px;
-    font-weight:500;
+    color:#1B222B;
+    border-radius:10px;
+    padding:3px 9px;
+    font-weight:600;
   }
-  .card-note{font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.4;
+  .card-note{font-size:11.5px; color:rgba(27,34,43,0.68); margin-top:8px; line-height:1.4;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
-  .card-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:9px;}
+  .card-bottom{display:flex; justify-content:space-between; align-items:center; gap:8px;}
   .card-followup-hint{
-    font-size:11px; color:var(--muted); margin-top:7px; padding-top:7px;
-    border-top:1px dashed var(--line); line-height:1.4;
+    font-size:11px; color:rgba(27,34,43,0.68); line-height:1.4;
+    flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .card-followup-hint b{color:var(--steel-dk); font-weight:600;}
+  .card-followup-hint b{color:#1B222B; font-weight:700;}
+
+  /* pastel stage colors — desktop board only; overridden for mobile's dark theme below.
+     Tag color is a tonal step deeper than the zone background, same hue family. */
+  .card.stage-new .card-color-zone{background:#E3F0FC;}
+  .card.stage-new .tag{background:#C8E4FA;}
+  .card.stage-appointment .card-color-zone{background:#FFE7D3;}
+  .card.stage-appointment .tag{background:#FFD5B0;}
+  .card.stage-requirement .card-color-zone{background:#EAE3FB;}
+  .card.stage-requirement .tag{background:#D8CCF7;}
+  .card.stage-sample .card-color-zone{background:#DFF5EA;}
+  .card.stage-sample .tag{background:#C3ECD3;}
+  .card.stage-quoted .card-color-zone{background:#FFF3CE;}
+  .card.stage-quoted .tag{background:#FCE7A3;}
+  .card.stage-negotiation .card-color-zone{background:#FCE1E8;}
+  .card.stage-negotiation .tag{background:#F8C3D2;}
+  .card.stage-won .card-color-zone{background:#DCF4DE;}
+  .card.stage-won .tag{background:#BEEAC3;}
+  .card.stage-lost .card-color-zone{background:#EDEDED;}
+  .card.stage-lost .tag{background:#D8D8D8;}
+  /* mobile pipeline list keeps the dark theme — pastel is desktop-only, and touch has no hover,
+     so mobile cards stay fully expanded rather than hidden behind a hover that can't happen */
+  #mobileList .card{background:var(--surface); border-color:var(--line); padding:10px;}
+  #mobileList .card-color-zone{background:transparent !important; padding:0;}
+  #mobileList .card-company{color:var(--ink);}
+  #mobileList .card-cat{color:var(--muted);}
+  #mobileList .card-note{color:var(--muted);}
+  #mobileList .tag{background:rgba(45,212,198,0.14) !important; color:var(--steel);}
+  #mobileList .card-followup-hint{color:var(--muted);}
+  #mobileList .card-followup-hint b{color:var(--steel);}
+  #mobileList .card-tags-note{max-height:none; opacity:1; margin-top:9px; overflow:visible;}
+  #mobileList .card-footer-zone{max-height:none; opacity:1; margin-top:10px; overflow:visible; padding:0;}
   .stage-quick{
     width:100%;
     margin-top:9px;
     font-size:11px;
     font-family:'IBM Plex Mono', monospace;
-    border:1px solid var(--line);
-    border-radius:5px;
-    padding:6px 7px;
-    background:var(--bg);
-    color:var(--muted);
+    border:1px solid rgba(0,0,0,0.12);
+    border-radius:8px;
+    padding:7px 8px;
+    background:rgba(255,255,255,0.65);
+    color:#1B222B;
     -webkit-appearance:none;
     appearance:none;
   }
+  /* desktop board uses drag-and-drop to move stages, so the dropdown is redundant there;
+     mobile has no drag-and-drop, so it stays visible in the mobile pipeline list */
+  #board .stage-quick{display:none;}
   .avatar{
     width:20px; height:20px; border-radius:50%;
     background:var(--steel);
@@ -305,6 +437,8 @@
     padding:2px 7px;
     border-radius:10px;
     font-weight:500;
+    flex-shrink:0;
+    white-space:nowrap;
   }
   .fu-overdue{background:#FBE4DC; color:var(--rust);}
   .fu-today{background:#FBEDD3; color:#9A6A0F;}
@@ -325,13 +459,27 @@
   }
   .add-lead-inline:hover{border-color:var(--steel); color:var(--steel);}
 
-  /* ---------- Followup / Table views ---------- */
-  #followupView, #tableView{
+  /* ---------- Followup / Table / Settings views ---------- */
+  #followupView, #tableView, #settingsView, #reportsView, #lostView{
     display:none;
     height:100%;
     overflow-y:auto;
-    padding:20px 24px 40px;
+    padding:20px 24px 40px 40px;
   }
+  .fu-person-filter{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
+  .fu-person-chip{
+    display:flex; align-items:center; gap:6px;
+    background:#FFFFFF; border:1px solid var(--line-dk); border-radius:20px;
+    padding:7px 14px; font-family:'IBM Plex Sans', sans-serif; font-size:12.5px; font-weight:600;
+    color:#1B222B; cursor:pointer;
+  }
+  .fu-person-chip:hover{border-color:var(--steel);}
+  .fu-person-chip.active{background:var(--steel-dk); border-color:var(--steel-dk); color:#fff;}
+  .fu-person-chip .fu-person-count{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:600;
+    background:rgba(0,0,0,0.07); border-radius:9px; padding:1px 7px;
+  }
+  .fu-person-chip.active .fu-person-count{background:rgba(255,255,255,0.22); color:#fff;}
   .fv-section{margin-bottom:26px; border-radius:8px;}
   .fv-title{
     font-family:'Space Grotesk', sans-serif;
@@ -349,54 +497,150 @@
     gap:14px;
     background:var(--surface);
     border:1px solid var(--line);
+    border-left:4px solid var(--line);
     border-radius:7px;
     padding:10px 14px;
     margin-bottom:7px;
     cursor:pointer;
+    transition:box-shadow 0.15s ease;
   }
-  .fv-row:hover{border-color:var(--steel);}
+  .fv-row:hover{box-shadow:0 3px 10px rgba(0,0,0,0.08);}
   .fv-row .fv-company{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; width:170px; flex-shrink:0;}
   .fv-row .fv-stage{font-size:11px; color:var(--muted); width:130px; flex-shrink:0;}
   .fv-row .fv-note{font-size:12px; color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .fv-row .fv-note b{color:var(--steel-dk); font-weight:600;}
   .fv-row .fv-date{font-family:'IBM Plex Mono', monospace; font-size:11px; flex-shrink:0;}
+  #fvOverdue .fv-row{background:#FCECEA; border-left-color:#E8A896;}
+  #fvToday .fv-row{background:#FFF6E2; border-left-color:#F2DB88;}
+  #fvLater .fv-row{background:#EEF7F0; border-left-color:#A9CBAF;}
+  #fvNone .fv-row{background:#F2F2F2; border-left-color:#D2D2D2;}
 
-  table.leads-table{width:100%; border-collapse:collapse; background:var(--surface); border-radius:8px; overflow:hidden; border:1px solid var(--line);}
-  table.leads-table th{
-    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
-    color:var(--muted); font-weight:600; padding:10px 12px; border-bottom:2px solid var(--ink);
-    background:#F5F6F6; position:sticky; top:0;
+  .al-header{
+    display:grid;
+    grid-template-columns: 170px 130px 190px 140px 100px 130px 1fr;
+    gap:12px;
+    padding:0 14px 8px 18px;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--muted);
+    font-weight:600;
+    border-bottom:2px solid #1B222B;
+    margin-bottom:10px;
   }
-  table.leads-table td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:12.5px; vertical-align:top;}
-  table.leads-table tr:hover td{background:#FAFBFB;}
-  table.leads-table tr{cursor:pointer;}
+  .al-list{display:flex; flex-direction:column;}
+  .al-row{
+    display:grid;
+    grid-template-columns: 170px 130px 190px 140px 100px 130px 1fr;
+    gap:12px;
+    align-items:center;
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-left:4px solid #D2D2D2;
+    border-radius:7px;
+    padding:11px 14px;
+    margin-bottom:7px;
+    cursor:pointer;
+    transition:box-shadow 0.15s ease;
+  }
+  .al-row:hover{box-shadow:0 3px 10px rgba(0,0,0,0.08);}
+  .al-company{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; color:#1B222B;}
+  .al-cell{font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 
-  /* ---------- Side panel ---------- */
-  #overlay{
-    position:fixed; inset:0; background:rgba(27,34,43,0.35);
-    display:none; z-index:40;
+  #settingsView{display:none; max-width:640px;}
+  #reportsView{display:none; max-width:640px;}
+  .report-card{
+    background:#FFFFFF; border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px; margin-bottom:14px;
   }
+  .report-card-top{display:flex; align-items:center; justify-content:space-between; gap:16px;}
+  .report-card-title{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15px; color:#1B222B;}
+  .report-card-desc{font-size:12px; color:var(--muted); margin-top:3px;}
+  .report-download-btn{white-space:nowrap; flex-shrink:0;}
+
+  .settings-section{
+    background:#FFFFFF; border:1px solid var(--line); border-radius:10px;
+    padding:20px 22px; margin-bottom:20px;
+  }
+  .settings-title{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color:#1B222B;}
+  .settings-desc{font-size:12px; color:var(--muted); margin-top:3px; margin-bottom:14px;}
+  .settings-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .settings-chip{
+    display:flex; align-items:center; gap:8px;
+    background:#F1F2F1; border:1px solid var(--line-dk); border-radius:16px;
+    padding:6px 8px 6px 14px; font-size:12.5px; font-weight:600; color:#1B222B;
+  }
+  .settings-chip .settings-del{
+    display:flex; align-items:center; justify-content:center;
+    width:18px; height:18px; border-radius:50%; background:rgba(193,81,46,0.14);
+    color:var(--rust); font-size:12px; font-weight:700; cursor:pointer; border:none; line-height:1;
+  }
+  .settings-chip .settings-del:hover{background:rgba(193,81,46,0.28);}
+  .settings-empty{font-size:12.5px; color:var(--muted); margin-bottom:14px;}
+  .al-lastact{color:var(--muted);}
+
+  /* ---------- Lead page (was a slide-over panel; now a full view like the other tabs) ---------- */
   #panel{
-    position:fixed; top:0; right:-460px; width:440px; max-width:92vw; height:100%;
-    background:var(--surface); z-index:50;
-    box-shadow:-6px 0 24px rgba(0,0,0,0.15);
-    transition:right 0.22s ease;
-    display:flex; flex-direction:column;
+    display:none;
+    height:100%;
+    max-width:1180px;
+    margin:0 auto;
+    flex-direction:column;
   }
-  #panel.open{right:0;}
+  #panel.open{display:flex;}
   .panel-head{
-    padding:18px 20px 14px;
+    padding:14px 24px 12px;
     border-bottom:1px solid var(--line);
-    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
   }
-  .panel-head h2{font-family:'Space Grotesk', sans-serif; font-size:19px; margin:0 0 3px 0;}
+  .panel-head h2{font-family:'Space Grotesk', sans-serif; font-size:19px; margin:0 0 2px 0;}
   .panel-head .cat{font-size:12px; color:var(--muted);}
-  .close-btn{background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; line-height:1; padding:2px 6px;}
+  .close-btn{background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; line-height:1; padding:6px; margin-top:2px;}
   .qa-call-btn{
-    width:34px; height:34px; border-radius:50%; border:1.5px solid var(--steel); color:var(--steel);
+    width:36px; height:36px; border-radius:50%; border:1.5px solid var(--steel); color:var(--steel);
     display:flex; align-items:center; justify-content:center; text-decoration:none; flex-shrink:0;
   }
-  .panel-body{flex:1; overflow-y:auto; padding:16px 20px 30px;}
+  .panel-head-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .pill-btn{
+    display:flex; align-items:center; gap:6px;
+    border-radius:20px; padding:7px 14px; font-family:'IBM Plex Sans', sans-serif;
+    font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .pill-won{background:var(--green); color:#fff; border:1px solid var(--green);}
+  .pill-won:hover{filter:brightness(1.06);}
+  .pill-lost{background:transparent; color:var(--rust); border:1px solid var(--rust);}
+  .pill-lost:hover{background:rgba(193,81,46,0.08);}
+  .pill-del{background:#F1F2F1; color:#4A5560; border:1px solid var(--line-dk);}
+  .pill-del:hover{background:#E5E6E5;}
+
+  .panel-body{flex:1; overflow-y:auto; padding:14px 24px 18px 40px;}
+  .panel-grid{display:grid; grid-template-columns:1fr 340px; gap:16px; align-items:start;}
+  .panel-card{
+    background:#FFFFFF; border:1px solid var(--line); border-radius:12px;
+    padding:13px 18px; margin-bottom:12px;
+  }
+  .panel-card-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:11.5px;
+    text-transform:uppercase; letter-spacing:0.6px; color:#8A96A3;
+    padding-bottom:8px; margin-bottom:10px; border-bottom:1px solid var(--line);
+  }
+  .panel-card-action{display:flex; justify-content:flex-end; margin-top:6px;}
+  .panel-card-action button, .task-save-row button{
+    background:none; border:none; color:var(--steel-dk); font-weight:600; font-size:12.5px;
+    cursor:pointer; padding:5px 8px; border-radius:5px;
+  }
+  .panel-card-action button:hover, .task-save-row button:hover{background:rgba(45,212,198,0.1);}
+  .status-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;}
+  .panel-card-activity{position:sticky; top:0;}
+  .panel-card-activity .add-activity{margin-top:14px;}
+
+  /* follow-up card gets a warning accent when the lead needs attention */
+  #pFollowupCard{border-top:3px solid var(--line);}
+  #pFollowupCard.needs-attention{border-top:3px solid var(--rust);}
+  #pFollowupCardTitle.needs-attention{color:var(--rust); display:flex; align-items:center; gap:6px;}
+  #pFollowupWrap.attention-date input{background:rgba(193,81,46,0.08);}
+
+
   .field-row{display:flex; gap:10px; margin-bottom:14px;}
   .field{flex:1;}
   .field label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:600; margin-bottom:5px;}
@@ -405,12 +649,55 @@
     font-family:'IBM Plex Sans', sans-serif; font-size:12.5px; background:var(--bg); color:var(--ink);
   }
   .field textarea{resize:vertical; font-family:'IBM Plex Mono', monospace; font-size:12px;}
+
+  /* ---------- Lead page: read like a document, edit affordance only on hover/focus ---------- */
+  #panel .field label{color:#8A96A3;}
+  #panel .field select, #panel .field input, #panel .field textarea,
+  #panel .searchable-select input, #panel .date-input-wrap input{
+    border:1px solid transparent; background:transparent; padding:5px 6px; margin:-5px -6px;
+    font-size:13.5px; color:#1B222B; font-weight:500; border-radius:5px;
+    transition:background 0.12s ease, border-color 0.12s ease;
+  }
+  #panel .field select{cursor:pointer;}
+  #panel .field textarea{font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:400;}
+  #panel .field select:hover, #panel .field input:hover, #panel .field textarea:hover,
+  #panel .searchable-select input:hover, #panel .date-input-wrap input:hover{
+    background:rgba(0,0,0,0.035);
+  }
+  #panel .field select:focus, #panel .field input:focus, #panel .field textarea:focus,
+  #panel .searchable-select input:focus, #panel .date-input-wrap input:focus{
+    background:#FFFFFF; border-color:var(--steel); outline:none;
+  }
+  #panel .field select::placeholder, #panel .field input::placeholder, #panel .field textarea::placeholder{color:#B7BEC5;}
+  #panel .date-input-wrap{background:none;}
+  #panel .date-icon{opacity:0.55;}
+  #panel .stage-badge-select{
+    -webkit-appearance:none; appearance:none;
+    font-weight:700; border-radius:20px !important; padding:5px 26px 5px 12px !important; margin:0 !important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231B222B' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center;
+  }
+  #panel .task-save-row{position:relative;}
   .tags-edit{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px;}
   .chip-picker{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px;}
   .chip{padding:4px 11px; border-radius:14px; font-size:11.5px; font-weight:500; cursor:pointer; border:1px solid var(--line-dk); background:var(--surface); color:var(--ink); user-select:none; transition:background 0.12s, color 0.12s;}
   .chip:hover{border-color:var(--steel);}
   .chip.selected{background:var(--steel); color:#fff; border-color:var(--steel);}
   .chip-add-row{display:flex; gap:6px; margin-bottom:14px; margin-top:8px;}
+  .searchable-select{position:relative;}
+  .searchable-select input{
+    width:100%; border:1px solid var(--line-dk); border-radius:6px; padding:7px 9px;
+    font-family:'IBM Plex Sans', sans-serif; font-size:12.5px; background:var(--bg); color:var(--ink);
+  }
+  .ss-dropdown{
+    display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:80;
+    background:var(--surface); border:1px solid var(--line-dk); border-radius:7px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.15); max-height:220px; overflow-y:auto;
+  }
+  .ss-dropdown.open{display:block;}
+  .ss-option{padding:8px 11px; font-size:12.5px; color:var(--ink); cursor:pointer;}
+  .ss-option:hover, .ss-option.ss-active{background:rgba(45,212,198,0.12); color:var(--steel-dk);}
+  .ss-empty{padding:10px 11px; font-size:12px; color:var(--muted);}
   .chip-plus-btn{
     display:inline-flex; align-items:center; gap:4px; background:none;
     border:1.5px dashed var(--line-dk); border-radius:14px; padding:5px 12px;
@@ -424,7 +711,7 @@
   .attention-banner{
     display:flex; align-items:center; gap:8px; background:rgba(193,81,46,0.12);
     border:1px solid rgba(193,81,46,0.4); color:var(--rust); border-radius:7px;
-    padding:10px 12px; font-size:12.5px; font-weight:600; margin-bottom:16px;
+    padding:8px 12px; font-size:12px; font-weight:600; margin-bottom:12px;
   }
   .attention-flag{
     display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700;
@@ -527,6 +814,7 @@
       --muted:#8C99A6;
     }
     body{background:var(--bg);}
+    #sidebar{display:none;}
     header{display:none;}
 
     /* mobile top bar */
@@ -587,22 +875,42 @@
     .mobile-empty{color:var(--muted);}
 
     #followupView, #tableView{padding:14px 14px 30px; background:var(--bg);}
-    .fv-row{flex-wrap:wrap; row-gap:4px; padding:11px 13px; background:var(--surface); border-color:var(--line);}
+    #followupView .fv-row{flex-wrap:wrap; row-gap:4px; padding:11px 13px; background:var(--surface); border-color:var(--line); border-left-color:var(--line);}
     .fv-row .fv-company{width:100%; order:1; color:var(--ink);}
     .fv-row .fv-stage{order:3; width:auto; color:var(--muted);}
     .fv-row .fv-note{order:4; width:100%; white-space:normal; color:var(--muted);}
     .fv-row .fv-date{order:2; margin-left:auto;}
     .fv-title{color:var(--ink);}
+    .fu-person-chip{background:var(--surface); border-color:var(--line-dk); color:var(--ink);}
+    .fu-person-chip.active{background:var(--steel-dk); border-color:var(--steel-dk); color:#08201D;}
+    .fu-person-chip.active .fu-person-count{background:rgba(8,32,29,0.18); color:#08201D;}
 
     #tableView{overflow-x:auto;}
-    table.leads-table{min-width:640px; background:var(--surface); border-color:var(--line);}
-    table.leads-table th{background:var(--bg); color:var(--muted); border-color:var(--line);}
-    table.leads-table td{border-color:var(--line); color:var(--ink);}
-    table.leads-table tr:hover td{background:rgba(255,255,255,0.03);}
+    #tableView .al-header, #tableView .al-row{min-width:1020px;}
+    #tableView .al-header{color:var(--muted); border-color:var(--ink);}
+    #tableView .al-row{background:var(--surface); border-color:var(--line); border-left-color:var(--line-dk);}
+    #tableView .al-company{color:var(--ink);}
+    #tableView .al-cell{color:var(--muted);}
 
-    /* lead detail sheet */
-    #panel{width:100vw; max-width:100vw; background:var(--surface);}
-    .panel-head{padding:14px 16px 14px; border-color:var(--line); align-items:center;}
+    #lostView{overflow-x:auto;}
+    #lostView .al-header, #lostView .al-row{min-width:1020px;}
+    #lostView .al-header{color:var(--muted); border-color:var(--ink);}
+    #lostView .al-row{background:var(--surface); border-color:var(--line); border-left-color:var(--line-dk);}
+    #lostView .al-company{color:var(--ink);}
+    #lostView .al-cell{color:var(--muted);}
+
+    #settingsView{padding:14px;}
+    .settings-section{background:var(--surface); border-color:var(--line);}
+    .settings-title{color:var(--ink);}
+    .settings-chip{background:var(--bg); border-color:var(--line-dk); color:var(--ink);}
+    #reportsView{padding:14px;}
+    .report-card{background:var(--surface); border-color:var(--line);}
+    .report-card-title{color:var(--ink);}
+    .report-card-top{flex-wrap:wrap;}
+
+    /* lead detail page */
+    #panel{max-width:100%; background:var(--surface);}
+    .panel-head{padding:14px 16px 14px; align-items:center; flex-wrap:wrap;}
     .close-btn{
       order:-1; color:var(--steel); font-size:22px; width:34px; height:34px; flex-shrink:0;
       display:flex; align-items:center; justify-content:center; border-radius:50%;
@@ -610,8 +918,18 @@
     .close-btn:active{background:rgba(45,212,198,0.12);}
     .panel-head h2{color:var(--ink);}
     .panel-head .cat{color:var(--muted);}
+    .panel-head-actions{flex:1 1 100%; justify-content:flex-start;}
+    .pill-won{background:var(--green); border-color:var(--green);}
+    .pill-lost{color:#FF8A75; border-color:#FF8A75;}
+    .pill-del{background:var(--bg); color:var(--muted); border-color:var(--line-dk);}
     .panel-body{padding:14px 16px 26px; background:var(--bg);}
-    .section-lbl{color:var(--steel); border-color:var(--line);}
+    .panel-grid{grid-template-columns:1fr;}
+    .panel-card{background:var(--surface); border-color:var(--line);}
+    .panel-card-title{color:var(--muted); border-color:var(--line);}
+    .panel-card-activity{position:static;}
+    .status-grid{grid-template-columns:repeat(2, 1fr);}
+    #pFollowupCard.needs-attention{border-top-color:var(--rust);}
+    #pFollowupWrap.attention-date input{background:rgba(255,107,91,0.14);}
     .field label{color:var(--muted);}
     .field select, .field input, .field textarea{background:var(--surface); border-color:var(--line-dk); color:var(--ink);}
     .req-box{background:rgba(226,163,61,0.1); border-color:rgba(226,163,61,0.35); color:#F0C97A;}
@@ -621,9 +939,6 @@
     .tl-date{color:var(--muted);}
     .tl-by{color:var(--steel);}
     .tl-text{color:var(--ink);}
-    .panel-footer{padding:12px 16px; flex-wrap:wrap; background:var(--surface); border-color:var(--line);}
-    .btn-sm{flex:1 1 45%;}
-    .btn-del{color:var(--muted); border-color:var(--line-dk) !important;}
     .field-row{flex-direction:column; gap:12px; margin-bottom:0;}
     .chip{padding:7px 13px; font-size:12.5px; background:var(--bg); border-color:var(--line-dk); color:var(--muted);}
     .chip.selected{background:var(--steel-dk); color:#08201D; border-color:var(--steel-dk);}
@@ -643,8 +958,7 @@
     .col{flex:0 0 90vw;}
     .stat{padding:2px 12px;}
   }
-</style>
-</head>
+</style></head>
 <body>
 <div id="drawerOverlay"></div>
 <aside id="drawer">
@@ -657,25 +971,67 @@
   </div>
   <div class="drawer-section-lbl">Views</div>
   <nav class="drawer-nav">
-    <button class="drawer-nav-item active" data-view="board"><span class="dn-icon">Γûñ</span>Funnel</button>
-    <button class="drawer-nav-item" data-view="followup"><span class="dn-icon">Γùö</span>Follow-ups</button>
-    <button class="drawer-nav-item" data-view="table"><span class="dn-icon">Γëú</span>All Leads</button>
+    <button class="drawer-nav-item active" data-view="board"><span class="dn-icon">▤</span>Funnel</button>
+    <button class="drawer-nav-item" data-view="followup"><span class="dn-icon">◔</span>Follow-ups</button>
+    <button class="drawer-nav-item" data-view="table"><span class="dn-icon">≣</span>All Leads</button>
   </nav>
   <div class="drawer-divider"></div>
   <div class="drawer-section-lbl">Options</div>
   <nav class="drawer-nav">
-    <button class="drawer-nav-item" id="drawerShowLostBtn"><span class="dn-icon">ΓÜæ</span><span id="drawerShowLostLabel">Show Lost</span></button>
-    <button class="drawer-nav-item" id="drawerResetBtn"><span class="dn-icon">Γå║</span>Reset demo data</button>
+    <button class="drawer-nav-item" data-view="lost"><span class="dn-icon">⚑</span>Lost Leads</button>
+    <button class="drawer-nav-item" id="drawerReportsBtn"><span class="dn-icon">📄</span>Reports</button>
+    <button class="drawer-nav-item" id="drawerSettingsBtn"><span class="dn-icon">⚙</span>Settings</button>
   </nav>
 </aside>
 <div id="mobileTopbar" class="mobile-only">
-  <button class="topbar-icon-btn" id="drawerOpenBtn" aria-label="Menu">Γÿ░</button>
+  <button class="topbar-icon-btn" id="drawerOpenBtn" aria-label="Menu">☰</button>
   <div class="topbar-title">NEXUS</div>
-  <button class="topbar-icon-btn" id="drawerOpenBtn2" aria-label="Menu" style="visibility:hidden;">Γÿ░</button>
+  <button class="topbar-icon-btn" id="drawerOpenBtn2" aria-label="Menu" style="visibility:hidden;">☰</button>
+</div>
+<div id="mobileSearchRow" class="mobile-only search-bar">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="mobileSearchInput" placeholder="Search leads...">
+  <button type="button" class="search-clear" id="mobileSearchClear" aria-label="Clear search">&times;</button>
 </div>
 
+<div id="appShell">
+  <aside id="sidebar">
+    <button type="button" id="sidebarCollapseBtn" aria-label="Collapse sidebar">‹</button>
+    <div class="sidebar-logo">
+      <div class="sidebar-mark">N</div>
+      <div class="sidebar-logo-text">
+        <div class="sidebar-name">NEXUS</div>
+        <div class="sidebar-tagline">Lead Funnel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-item active" data-view="board" title="Funnel"><span class="sn-icon">▤</span><span class="sn-label">Funnel</span></button>
+      <button class="sidebar-nav-item" data-view="followup" title="Follow-ups"><span class="sn-icon">◔</span><span class="sn-label">Follow-ups</span></button>
+      <button class="sidebar-nav-item" data-view="table" title="All Leads"><span class="sn-icon">≣</span><span class="sn-label">All Leads</span></button>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-item" data-view="lost" title="Lost Leads"><span class="sn-icon">⚑</span><span class="sn-label">Lost Leads</span></button>
+      <button class="sidebar-nav-item" id="sidebarReportsBtn" title="Reports"><span class="sn-icon">📄</span><span class="sn-label">Reports</span></button>
+      <button class="sidebar-nav-item" id="sidebarSettingsBtn" title="Settings"><span class="sn-icon">⚙</span><span class="sn-label">Settings</span></button>
+    </nav>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-avatar">R</div>
+      <div class="sidebar-footer-text">
+        <div class="sidebar-footer-name">RFLABS</div>
+        <div class="sidebar-footer-sub" id="sidebarFooterSub">Lead Funnel</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="app-main">
 <header>
-  <div class="logo">NEXUS <span>LEAD FUNNEL</span></div>
+  <div class="search-bar" id="desktopSearchBar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search leads...">
+    <button type="button" class="search-clear" id="searchClear" aria-label="Clear search">&times;</button>
+  </div>
   <div class="stats">
     <button class="stat" id="statOpenBtn" type="button"><div class="num mono" id="statTotal">0</div><div class="lbl">Open Leads</div></button>
     <button class="stat due" id="statDueBtn" type="button"><div class="num mono" id="statToday">0</div><div class="lbl">Due Today</div></button>
@@ -683,16 +1039,10 @@
     <button class="stat" id="statWonBtn" type="button"><div class="num mono" id="statWon">0</div><div class="lbl">Won (30d)</div></button>
   </div>
   <div class="header-actions">
-    <div class="view-toggle">
-      <button class="active" data-view="board">Funnel</button>
-      <button data-view="followup">Follow-ups</button>
-      <button data-view="table">All Leads</button>
-    </div>
-    <button class="btn-ghost" id="showLostBtn">Γÿ░ <span class="btn-label">Show Lost</span></button>
-    <button class="btn-ghost" id="resetBtn">Γå║ <span class="btn-label">Reset demo data</span></button>
     <button class="btn-primary" id="newLeadBtn">+ New Lead</button>
   </div>
 </header>
+<div id="headerStrip"></div>
 
 <main>
   <div id="board"></div>
@@ -705,6 +1055,7 @@
   <button id="mobileFab" class="mobile-fab" aria-label="Add lead"><span style="font-size:17px; line-height:1;">+</span> Add Lead</button>
 
   <div id="followupView">
+    <div class="fu-person-filter" id="fuPersonFilter"></div>
     <div class="fv-section" id="fvSectionOverdue">
       <div class="fv-title"><span class="dot" style="background:var(--rust)"></span>Overdue</div>
       <div id="fvOverdue"></div>
@@ -724,93 +1075,179 @@
   </div>
 
   <div id="tableView">
-    <table class="leads-table">
-      <thead><tr>
-        <th>Company</th><th>Category</th><th>Products</th><th>Stage</th><th>City</th><th>Next Follow-up</th><th>Last Activity</th>
-      </tr></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+    <div class="al-header">
+      <div>Company</div><div>Category</div><div>Products</div><div>Stage</div><div>City</div><div>Next Follow-up</div><div>Last Activity</div>
+    </div>
+    <div id="tableBody" class="al-list"></div>
+  </div>
+
+  <div id="lostView">
+    <div class="al-header">
+      <div>Company</div><div>Category</div><div>Products</div><div>Stage</div><div>City</div><div>Next Follow-up</div><div>Last Activity</div>
+    </div>
+    <div id="lostBody" class="al-list"></div>
+  </div>
+
+  <div id="settingsView">
+    <div class="settings-section">
+      <div class="settings-title">Manage People</div>
+      <div class="settings-desc">People available in the "Assigned to" picker across leads.</div>
+      <div class="settings-list" id="peopleSettingsList"></div>
+      <div class="chip-add-row">
+        <input type="text" id="settingsPersonNew" placeholder="Add new person...">
+        <button type="button" id="settingsPersonAddBtn">Add</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">Manage Products</div>
+      <div class="settings-desc">Products available in the "Products" picker across leads.</div>
+      <div class="settings-list" id="productsSettingsList"></div>
+      <div class="chip-add-row">
+        <input type="text" id="settingsProductNew" placeholder="Add new product...">
+        <button type="button" id="settingsProductAddBtn">Add</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">Manage Categories</div>
+      <div class="settings-desc">Categories / industries available when creating or editing a lead.</div>
+      <div class="settings-list" id="categoriesSettingsList"></div>
+      <div class="chip-add-row">
+        <input type="text" id="settingsCategoryNew" placeholder="Add new category...">
+        <button type="button" id="settingsCategoryAddBtn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reportsView">
+    <div class="report-card">
+      <div class="report-card-top">
+        <div>
+          <div class="report-card-title">Tasks Assigned to Giri</div>
+          <div class="report-card-desc" id="reportCountGiri">0 leads</div>
+        </div>
+        <button type="button" class="btn-primary report-download-btn" data-report="giri">⬇ Download as PDF</button>
+      </div>
+    </div>
+    <div class="report-card">
+      <div class="report-card-top">
+        <div>
+          <div class="report-card-title">Tasks Assigned to Vikram</div>
+          <div class="report-card-desc" id="reportCountVikram">0 leads</div>
+        </div>
+        <button type="button" class="btn-primary report-download-btn" data-report="vikram">⬇ Download as PDF</button>
+      </div>
+    </div>
+    <div class="report-card">
+      <div class="report-card-top">
+        <div>
+          <div class="report-card-title">All Leads</div>
+          <div class="report-card-desc" id="reportCountAll">0 leads</div>
+        </div>
+        <button type="button" class="btn-primary report-download-btn" data-report="all">⬇ Download as PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div class="panel-head">
+      <button class="close-btn" id="closePanel">&larr;</button>
+      <div style="flex:1;">
+        <h2 id="pCompany">—</h2>
+        <div class="cat" id="pCat">—</div>
+      </div>
+      <div class="panel-head-actions">
+        <a class="qa-call-btn" id="qaCallBtn" href="#" style="display:none;" aria-label="Call">
+          <span style="font-size:16px;">&#9742;</span>
+        </a>
+        <button class="pill-btn pill-won" id="markWon">✓ Mark Won</button>
+        <button class="pill-btn pill-lost" id="markLost">✕ Mark Lost</button>
+        <button class="pill-btn pill-del" id="deleteLead">🗑 Delete</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="pAttentionBanner" class="attention-banner" style="display:none;"></div>
+      <div class="panel-grid">
+        <div class="panel-col-main">
+
+          <div class="panel-card">
+            <div class="panel-card-title">Status</div>
+            <div class="status-grid">
+              <div class="field">
+                <label>Stage</label>
+                <select id="pStage" class="stage-badge-select"></select>
+              </div>
+              <div class="field">
+                <label>City</label>
+                <input type="text" id="pCity" list="cityList" placeholder="e.g. Chennai">
+              </div>
+              <div class="field">
+                <label>Category / Industry</label>
+                <div class="searchable-select" id="pCatWrap">
+                  <input type="text" id="pCatEdit" placeholder="Search category..." autocomplete="off">
+                  <div class="ss-dropdown" id="pCatDropdown"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Contact</label>
+                <input type="text" id="pContact" placeholder="Phone / email">
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-card-title">Products</div>
+            <div class="chip-picker" id="pProductsPicker"></div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-card-title">Requirement</div>
+            <textarea id="pRequirement" class="req-box-edit" rows="2" placeholder="Specs, quantities, pricing, next steps..."></textarea>
+            <div class="panel-card-action"><button type="button" id="pRequirementBtn">Save requirement</button></div>
+          </div>
+
+          <div class="panel-card" id="pFollowupCard">
+            <div class="panel-card-title" id="pFollowupCardTitle">Follow-up</div>
+            <div class="field-row">
+              <div class="field">
+                <label>Date</label>
+                <div class="date-input-wrap" id="pFollowupWrap">
+                  <span class="date-icon">📅</span>
+                  <input type="text" id="pFollowup" readonly placeholder="No date set" style="cursor:pointer;">
+                </div>
+              </div>
+              <div class="field">
+                <label>Assigned to</label>
+                <div class="chip-picker" id="pPersonPicker"></div>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Task</label>
+              <div class="task-save-row">
+                <input type="text" id="pFollowupTask" placeholder="What needs to happen? e.g. Call to confirm quantity">
+                <button type="button" id="pFollowupTaskBtn">Save</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="panel-col-side">
+          <div class="panel-card panel-card-activity">
+            <div class="panel-card-title">Activity Log</div>
+            <div class="timeline" id="pTimeline"></div>
+            <div class="add-activity">
+              <textarea id="pNewActivity" rows="3" placeholder="What happened today? e.g. Called, sent quote, got specs..."></textarea>
+              <button class="btn-primary" id="addActivityBtn">Log activity</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
-
-<datalist id="cityList"></datalist>
-<div id="overlay"></div>
-<div id="panel">
-  <div class="panel-head">
-    <button class="close-btn" id="closePanel">&larr;</button>
-    <div style="flex:1;">
-      <h2 id="pCompany">ΓÇö</h2>
-      <div class="cat" id="pCat">ΓÇö</div>
-    </div>
-    <a class="qa-call-btn" id="qaCallBtn" href="#" style="display:none;" aria-label="Call">
-      <span style="font-size:16px;">&#9742;</span>
-    </a>
-  </div>
-  <div class="panel-body">
-    <div id="pAttentionBanner" class="attention-banner" style="display:none;"></div>
-    <div class="section-lbl">Status</div>
-    <div class="field-row">
-      <div class="field">
-        <label>Stage</label>
-        <select id="pStage"></select>
-      </div>
-      <div class="field">
-        <label>City</label>
-        <input type="text" id="pCity" list="cityList" placeholder="e.g. Chennai">
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Contact</label>
-        <input type="text" id="pContact" placeholder="Phone / email">
-      </div>
-    </div>
-
-    <div class="section-lbl">Follow-up</div>
-    <div class="field" style="margin-bottom:14px;">
-      <label>Date</label>
-      <div class="date-input-wrap" id="pFollowupWrap">
-        <span class="date-icon">≡ƒôà</span>
-        <input type="text" id="pFollowup" readonly placeholder="No date set" style="cursor:pointer;">
-      </div>
-    </div>
-    <div class="field" style="margin-bottom:14px;">
-      <label>Assigned to</label>
-      <div class="chip-picker" id="pPersonPicker"></div>
-    </div>
-    <div class="field" style="margin-bottom:14px;">
-      <label>Task</label>
-      <div class="task-save-row">
-        <input type="text" id="pFollowupTask" placeholder="What needs to happen? e.g. Call to confirm quantity">
-        <button type="button" class="btn-primary" id="pFollowupTaskBtn">Save</button>
-      </div>
-    </div>
-
-    <div class="section-lbl">Products</div>
-    <div class="chip-picker" id="pProductsPicker"></div>
-    <button type="button" class="chip-plus-btn" id="pProductAddTrigger">+ Add product</button>
-    <div class="chip-add-row" id="pProductAddRow" style="display:none;">
-      <input type="text" id="pProductNew" placeholder="New product name...">
-      <button type="button" id="pProductAddBtn">Add</button>
-    </div>
-
-    <div class="section-lbl">Requirement</div>
-    <textarea id="pRequirement" class="req-box-edit" rows="3" placeholder="Specs, quantities, pricing, next steps..."></textarea>
-    <button type="button" class="btn-primary" id="pRequirementBtn" style="margin-top:8px; margin-bottom:4px;">Save requirement</button>
-
-    <div class="section-lbl">Activity Log</div>
-    <div class="timeline" id="pTimeline"></div>
-    <div class="add-activity">
-      <textarea id="pNewActivity" rows="3" placeholder="What happened today? e.g. Called, sent quote, got specs..."></textarea>
-      <button class="btn-primary" id="addActivityBtn" style="align-self:flex-start;">Log activity</button>
-    </div>
-  </div>
-  <div class="panel-footer">
-    <button class="btn-sm btn-won" id="markWon">Mark Won</button>
-    <button class="btn-sm btn-lost" style="border:1px solid var(--rust);" id="markLost">Mark Lost</button>
-    <button class="btn-sm btn-del" style="border:1px solid var(--line-dk);" id="deleteLead">Delete</button>
   </div>
 </div>
+
+<datalist id="cityList"></datalist>
 
 <div id="modalOverlay">
   <div id="modal">
@@ -822,7 +1259,10 @@
     <div class="field-row">
       <div class="field">
         <label>Category / Industry</label>
-        <input type="text" id="nCat" placeholder="e.g. Valve manufacturer">
+        <div class="searchable-select" id="nCatWrap">
+          <input type="text" id="nCat" placeholder="Search category..." autocomplete="off">
+          <div class="ss-dropdown" id="nCatDropdown"></div>
+        </div>
       </div>
       <div class="field">
         <label>City</label>
@@ -832,11 +1272,6 @@
     <div class="field" style="margin-bottom:12px;">
       <label>Products</label>
       <div class="chip-picker" id="nProductsPicker"></div>
-      <button type="button" class="chip-plus-btn" id="nProductAddTrigger">+ Add product</button>
-      <div class="chip-add-row" id="nProductAddRow" style="display:none;">
-        <input type="text" id="nProductNew" placeholder="New product name...">
-        <button type="button" id="nProductAddBtn">Add</button>
-      </div>
     </div>
     <div class="field" style="margin-bottom:12px;">
       <label>Requirement / notes</label>
@@ -870,24 +1305,12 @@
 </div>
 
 <script>
-/* ---------- shared RFLABS session guard ---------- */
-/* This tool shares its login with the rest of RFLABS' internal apps ΓÇö      */
-/* if there's no valid session (established by logging in at /apps/),      */
-/* send the person there instead of showing a separate login form here.    */
 const SESSION_KEY = 'rflabs_identity_session';
 function loadSession(){
-  try{
-    const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(e){ return null; }
+  try{ const raw = localStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
 }
 const nexusSession = loadSession();
-if(!nexusSession || !nexusSession.access_token){
-  window.location.href = '/apps/';
-}
-
-/* ---------- storage adapter: talks to the Netlify Function, authenticated ---------- */
-/* ---------- via the same session /apps/ already established               ---------- */
+if(!nexusSession || !nexusSession.access_token){ window.location.href = '/apps/'; }
 const NEXUS_API = '/.netlify/functions/nexus-data';
 async function authHeaders(){
   const session = loadSession();
@@ -896,49 +1319,40 @@ async function authHeaders(){
 }
 window.storage = {
   async get(key){
-    const res = await fetch(`${NEXUS_API}?key=${encodeURIComponent(key)}`, {
-      headers: await authHeaders()
-    });
+    const res = await fetch(`${NEXUS_API}?key=${encodeURIComponent(key)}`, { headers: await authHeaders() });
     if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
     if(res.status === 404) return null;
     if(!res.ok) throw new Error('Storage get failed: ' + res.status);
-    return await res.json(); // { key, value }
+    return await res.json();
   },
   async set(key, value){
-    const res = await fetch(NEXUS_API, {
-      method: 'POST',
-      headers: { ...(await authHeaders()), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, value })
-    });
+    const res = await fetch(NEXUS_API, { method: 'POST', headers: { ...(await authHeaders()), 'Content-Type': 'application/json' }, body: JSON.stringify({ key, value }) });
     if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
     if(!res.ok) return null;
     return await res.json();
   },
   async delete(key){
-    const res = await fetch(`${NEXUS_API}?key=${encodeURIComponent(key)}`, {
-      method: 'DELETE',
-      headers: await authHeaders()
-    });
+    const res = await fetch(`${NEXUS_API}?key=${encodeURIComponent(key)}`, { method: 'DELETE', headers: await authHeaders() });
     if(res.status === 401){ localStorage.removeItem(SESSION_KEY); window.location.href = '/apps/'; throw new Error('Session expired'); }
     if(!res.ok) return null;
     return await res.json();
   }
 };
-
 const STAGES = [
   {id:'new', name:'New Lead'},
-  {id:'appointment', name:'Appointment Set'},
   {id:'requirement', name:'Requirement Captured'},
-  {id:'sample', name:'Sample / Trial Sent'},
-  {id:'quoted', name:'Quotation Sent'},
+  {id:'sample', name:'Sample/Quote Sent'},
   {id:'negotiation', name:'Negotiation'},
   {id:'won', name:'Won'},
 ];
-const STAGE_COLORS = {
-  new:'#9AA3AC', appointment:'#3E5568', requirement:'#5B7F97', sample:'#8E6C3A',
-  quoted:'#E2A33D', negotiation:'#C1512E', won:'#4C7A5E', lost:'#B7BABE'
-};
-let showLost = false;
+let searchQuery = '';
+function matchesSearch(l){
+  if(!searchQuery) return true;
+  const q = searchQuery.toLowerCase();
+  const hay = [l.company, l.category, l.city, (l.products||[]).join(' '), l.requirement, l.followupTask, l.followupOwner]
+    .filter(Boolean).join(' ').toLowerCase();
+  return hay.includes(q);
+}
 let mobileActiveStage = 'new';
 const STORAGE_KEY = 'nexus-leads-v1';
 const PRODUCTS_KEY = 'nexus-products-v1';
@@ -949,6 +1363,11 @@ const PEOPLE_KEY = 'nexus-people-v1';
 const DEFAULT_PEOPLE = ['Vikram','Giri'];
 let PEOPLE = [];
 let nSelectedPerson = [];
+const CATEGORIES_KEY = 'nexus-categories-v1';
+const DEFAULT_CATEGORIES = ['Valves manufacturer','Industry','Printing (T-bags)','Air valve manufacturer','Fabric roll','Furniture'];
+let CATEGORIES = [];
+let nSelectedCategory = '';
+let pSelectedCategory = '';
 
 function fmtDate(d){ // d = Date
   return d.toISOString().slice(0,10);
@@ -961,7 +1380,7 @@ function addDays(n){
 function todayStr(){ return fmtDate(new Date()); }
 function nowTime(){ return new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }
 function initials(name){
-  if(!name) return 'ΓÇö';
+  if(!name) return '—';
   return name.slice(0,2).toUpperCase();
 }
 
@@ -1019,10 +1438,287 @@ function addPerson(name){
   savePeople();
   return clean;
 }
+function deleteProduct(name){
+  PRODUCTS = PRODUCTS.filter(p=>p!==name);
+  saveProducts();
+  // note: this only removes it from the picker for future use — leads that
+  // already have this product tagged keep showing it, nothing is scrubbed retroactively
+}
+function deletePerson(name){
+  PEOPLE = PEOPLE.filter(p=>p!==name);
+  savePeople();
+  // same as products: existing "assigned to" values on leads are left as-is
+}
+async function loadCategories(){
+  try{
+    const res = await window.storage.get(CATEGORIES_KEY, false);
+    if(res && res.value){
+      CATEGORIES = JSON.parse(res.value);
+    } else {
+      CATEGORIES = DEFAULT_CATEGORIES.slice();
+      await saveCategories();
+    }
+  }catch(e){
+    CATEGORIES = DEFAULT_CATEGORIES.slice();
+    try{ await saveCategories(); }catch(e2){}
+  }
+}
+async function saveCategories(){
+  try{ await window.storage.set(CATEGORIES_KEY, JSON.stringify(CATEGORIES), false); }
+  catch(e){ console.error('save categories failed', e); }
+}
+function addCategory(name){
+  const clean = name.trim();
+  if(!clean) return null;
+  const existing = CATEGORIES.find(c=>c.toLowerCase()===clean.toLowerCase());
+  if(existing) return existing;
+  CATEGORIES.push(clean);
+  saveCategories();
+  return clean;
+}
+function deleteCategory(name){
+  CATEGORIES = CATEGORIES.filter(c=>c!==name);
+  saveCategories();
+  // same as products/people: existing leads keep whatever category they already have
+}
+function renderSettings(){
+  const peopleEl = document.getElementById('peopleSettingsList');
+  peopleEl.innerHTML = PEOPLE.length ? PEOPLE.map(p=>`
+    <span class="settings-chip">${p}<button type="button" class="settings-del" data-person="${p}" aria-label="Delete ${p}">&times;</button></span>
+  `).join('') : '<div class="settings-empty">No one added yet.</div>';
+  peopleEl.querySelectorAll('.settings-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const name = btn.dataset.person;
+      if(!confirm(`Remove "${name}" from the people list? Leads already assigned to them keep that assignment — this only removes them from the picker going forward.`)) return;
+      deletePerson(name);
+      renderSettings();
+    });
+  });
+
+  const productsEl = document.getElementById('productsSettingsList');
+  productsEl.innerHTML = PRODUCTS.length ? PRODUCTS.map(p=>`
+    <span class="settings-chip">${p}<button type="button" class="settings-del" data-product="${p}" aria-label="Delete ${p}">&times;</button></span>
+  `).join('') : '<div class="settings-empty">No products added yet.</div>';
+  productsEl.querySelectorAll('.settings-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const name = btn.dataset.product;
+      if(!confirm(`Remove "${name}" from the products list? Leads already tagged with it keep that tag — this only removes it from the picker going forward.`)) return;
+      deleteProduct(name);
+      renderSettings();
+    });
+  });
+
+  const categoriesEl = document.getElementById('categoriesSettingsList');
+  categoriesEl.innerHTML = CATEGORIES.length ? CATEGORIES.map(c=>`
+    <span class="settings-chip">${c}<button type="button" class="settings-del" data-category="${c}" aria-label="Delete ${c}">&times;</button></span>
+  `).join('') : '<div class="settings-empty">No categories added yet.</div>';
+  categoriesEl.querySelectorAll('.settings-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const name = btn.dataset.category;
+      if(!confirm(`Remove "${name}" from the categories list? Leads already using it keep that category — this only removes it from the picker going forward.`)) return;
+      deleteCategory(name);
+      renderSettings();
+    });
+  });
+}
+
+/* ---------- Reports ---------- */
+function reportLeadsFor(type){
+  if(type === 'giri') return leads.filter(l=> l.followupOwner === 'Giri');
+  if(type === 'vikram') return leads.filter(l=> l.followupOwner === 'Vikram');
+  return leads.slice(); // 'all'
+}
+function renderReports(){
+  document.getElementById('reportCountGiri').textContent = reportLeadsFor('giri').length + ' lead' + (reportLeadsFor('giri').length===1?'':'s');
+  document.getElementById('reportCountVikram').textContent = reportLeadsFor('vikram').length + ' lead' + (reportLeadsFor('vikram').length===1?'':'s');
+  document.getElementById('reportCountAll').textContent = reportLeadsFor('all').length + ' lead' + (reportLeadsFor('all').length===1?'':'s');
+}
+/* ---------- Minimal self-contained PDF writer (no external library, no network calls) ---------- */
+function pdfEscape(s){
+  // PDF literal strings need backslash/paren escaping; non-ASCII chars aren't supported by
+  // the base (non-embedded) Helvetica font encoding, so normalize/strip anything exotic.
+  return String(s)
+    .replace(/[\u2013\u2014]/g, '-')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\\/g, '\\\\')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/[^\x20-\x7E]/g, '?');
+}
+function pdfFitText(s, colWidth, charWidthPt){
+  s = String(s);
+  const maxChars = Math.max(1, Math.floor(colWidth / charWidthPt));
+  return s.length > maxChars ? s.slice(0, Math.max(1, maxChars - 3)) + '...' : s;
+}
+function buildReportPDFBytes(title, metaLine, dataRows){
+  const pageW = 792, pageH = 612; // landscape US Letter, in points
+  const marginX = 40;
+  const topStartY = pageH - 50;
+  const bottomMargin = 40;
+  const lineHeight = 16;
+  const headers = ['Company','Category','City','Stage','Follow-up','Assigned To','Task'];
+  const colWidths = [110, 105, 70, 100, 65, 80, 220];
+
+  // reserve space for title+meta+column header before the first data row on page 1
+  const firstPageHeaderHeight = 60;
+  const rowsForPage = (isFirstPage) => Math.floor(((topStartY - (isFirstPage ? firstPageHeaderHeight : 24)) - bottomMargin) / lineHeight);
+
+  const pages = [];
+  let remaining = dataRows.slice();
+  let firstPage = true;
+  if(remaining.length === 0){
+    pages.push([]);
+  }
+  while(remaining.length > 0){
+    const capacity = rowsForPage(firstPage);
+    pages.push(remaining.slice(0, capacity));
+    remaining = remaining.slice(capacity);
+    firstPage = false;
+  }
+
+  const objBodies = {}; // objNum -> body string
+  let objCount = 0;
+  const nextNum = () => ++objCount;
+
+  const catalogNum = nextNum();
+  const pagesNum = nextNum();
+  const fontRegNum = nextNum();
+  const fontBoldNum = nextNum();
+
+  const pageObjNums = [];
+  pages.forEach((rows, pageIdx)=>{
+    let y = topStartY;
+    let stream = 'BT\n';
+    if(pageIdx === 0){
+      stream += `/FB 16 Tf 1 0 0 1 ${marginX} ${y} Tm (${pdfEscape(title)}) Tj\n`;
+      y -= 18;
+      stream += `/FR 9 Tf 1 0 0 1 ${marginX} ${y} Tm (${pdfEscape(metaLine)}) Tj\n`;
+      y -= 22;
+    } else {
+      y -= 4;
+    }
+    stream += '/FB 8 Tf\n';
+    let x = marginX;
+    headers.forEach((h,i)=>{
+      stream += `1 0 0 1 ${x} ${y} Tm (${pdfEscape(h.toUpperCase())}) Tj\n`;
+      x += colWidths[i];
+    });
+    y -= 14;
+    stream += '/FR 8 Tf\n';
+    if(rows.length === 0 && pages.length === 1){
+      stream += `1 0 0 1 ${marginX} ${y} Tm (No leads in this report.) Tj\n`;
+    }
+    rows.forEach(r=>{
+      let x2 = marginX;
+      r.forEach((val, i)=>{
+        const t = pdfFitText(val, colWidths[i] - 6, 4.6);
+        stream += `1 0 0 1 ${x2} ${y} Tm (${pdfEscape(t)}) Tj\n`;
+        x2 += colWidths[i];
+      });
+      y -= lineHeight;
+    });
+    stream += 'ET';
+
+    const contentNum = nextNum();
+    const pageNum = nextNum();
+    pageObjNums.push(pageNum);
+    objBodies[contentNum] = `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
+    objBodies[pageNum] = `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /Font << /FR ${fontRegNum} 0 R /FB ${fontBoldNum} 0 R >> >> /Contents ${contentNum} 0 R >>`;
+  });
+
+  objBodies[catalogNum] = `<< /Type /Catalog /Pages ${pagesNum} 0 R >>`;
+  objBodies[pagesNum] = `<< /Type /Pages /Kids [${pageObjNums.map(n=>n+' 0 R').join(' ')}] /Count ${pageObjNums.length} >>`;
+  objBodies[fontRegNum] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>`;
+  objBodies[fontBoldNum] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>`;
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for(let n = 1; n <= objCount; n++){
+    offsets[n] = pdf.length;
+    pdf += `${n} 0 obj\n${objBodies[n]}\nendobj\n`;
+  }
+  const xrefStart = pdf.length;
+  pdf += `xref\n0 ${objCount + 1}\n0000000000 65535 f \n`;
+  for(let n = 1; n <= objCount; n++){
+    pdf += String(offsets[n]).padStart(10, '0') + ' 00000 n \n';
+  }
+  pdf += `trailer\n<< /Size ${objCount + 1} /Root ${catalogNum} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  return pdf;
+}
+function downloadReportPDF(type){
+  const titles = {giri:'Tasks Assigned to Giri', vikram:'Tasks Assigned to Vikram', all:'All Leads'};
+  const title = titles[type] || 'Report';
+  const rows = reportLeadsFor(type);
+
+  try{
+    const metaLine = `NEXUS Lead Funnel - RFLABS - Generated ${new Date().toLocaleString()}`;
+    const dataRows = rows.map(l=>[
+      l.company, l.category || '-', l.city || '-',
+      STAGES.find(s=>s.id===l.stage)?.name || l.stage,
+      l.followup || '-', l.followupOwner || '-', l.followupTask || '-'
+    ]);
+    const pdfString = buildReportPDFBytes(title, metaLine, dataRows);
+
+    // Blob + object URL + a temporary anchor click is a plain browser API,
+    // no external library or network request needed at all.
+    const bytes = new Uint8Array(pdfString.length);
+    for(let i = 0; i < pdfString.length; i++) bytes[i] = pdfString.charCodeAt(i) & 0xFF;
+    const blob = new Blob([bytes], {type: 'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '.pdf';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+  }catch(err){
+    console.error('PDF generation failed:', err);
+    alert('Something went wrong generating the PDF: ' + err.message);
+  }
+}
+function setupSearchableSelect(inputId, dropdownId, getList, getCommitted, onSelect){
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if(!input || !dropdown) return;
+  function renderOptions(filterText){
+    const list = getList();
+    const filtered = filterText ? list.filter(c=>c.toLowerCase().includes(filterText.toLowerCase())) : list;
+    dropdown.innerHTML = filtered.length
+      ? filtered.map(c=>`<div class="ss-option" data-val="${c.replace(/"/g,'&quot;')}">${c}</div>`).join('')
+      : '<div class="ss-empty">No matches — add new categories from Settings.</div>';
+    dropdown.querySelectorAll('.ss-option').forEach(opt=>{
+      opt.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        const val = opt.dataset.val;
+        input.value = val;
+        onSelect(val);
+        dropdown.classList.remove('open');
+      });
+    });
+  }
+  input.addEventListener('focus', ()=>{ renderOptions(input.value); dropdown.classList.add('open'); });
+  input.addEventListener('input', ()=>{ renderOptions(input.value); dropdown.classList.add('open'); });
+  input.addEventListener('blur', ()=>{
+    setTimeout(()=>{
+      dropdown.classList.remove('open');
+      const list = getList();
+      const exact = list.find(c=>c.toLowerCase()===input.value.trim().toLowerCase());
+      if(exact){
+        input.value = exact;
+        onSelect(exact);
+      } else {
+        input.value = getCommitted() || '';
+      }
+    }, 150);
+  });
+}
 function renderChipPicker(containerId, sourceList, selectedArr, toggleCallback, emptyMsg){
   const el = document.getElementById(containerId);
   if(!el) return;
-  el.innerHTML = sourceList.map(p=>`<span class="chip ${selectedArr.includes(p)?'selected':''}" data-p="${p.replace(/"/g,'&quot;')}">${p}</span>`).join('') || `<span style="font-size:11.5px;color:var(--muted);">${emptyMsg || 'Nothing yet ΓÇö add one below.'}</span>`;
+  el.innerHTML = sourceList.map(p=>`<span class="chip ${selectedArr.includes(p)?'selected':''}" data-p="${p.replace(/"/g,'&quot;')}">${p}</span>`).join('') || `<span style="font-size:11.5px;color:var(--muted);">${emptyMsg || 'Nothing yet — add one below.'}</span>`;
   el.querySelectorAll('.chip').forEach(c=>{
     c.addEventListener('click', ()=> toggleCallback(c.dataset.p));
   });
@@ -1036,7 +1732,7 @@ function refreshCityList(){
 /* ---------- follow-up automation ---------- */
 /* If a follow-up's date arrives and nothing was logged on/after that date,   */
 /* auto-write an "attention needed" note into the activity log and flag the   */
-/* lead. If something WAS logged, that's already visible in the log as-is ΓÇö   */
+/* lead. If something WAS logged, that's already visible in the log as-is —   */
 /* no flag is added. This only runs when someone has Nexus open (there's no   */
 /* background server here), so it catches up whenever the app is opened.     */
 function clearAttention(l){
@@ -1056,10 +1752,10 @@ function checkFollowupsForAttention(){
     }
     if(l.lastAttentionFlagged !== l.followup){
       const who = l.followupOwner ? ` (assigned to ${l.followupOwner})` : '';
-      const what = l.followupTask ? ` ΓÇö task: ${l.followupTask}` : '';
+      const what = l.followupTask ? ` — task: ${l.followupTask}` : '';
       l.activities.push({
         date: today, time: nowTime(), by: 'System',
-        text: `No follow-up done for ${l.followup}${who}${what} ΓÇö attention needed.`
+        text: `No follow-up done for ${l.followup}${who}${what} — attention needed.`
       });
       l.attentionNeeded = true;
       l.lastAttentionFlagged = l.followup;
@@ -1073,13 +1769,13 @@ function seedData(){
   const today = todayStr();
   return [
     {id:'l1', company:'Air Lock', category:'Valves manufacturer', products:['Stretch film','EPE foam'],
-     stage:'appointment', city:'', contact:'', followup:addDays(1),
+     stage:'new', city:'', contact:'', followup:addDays(1),
      followupTask:'Get specs of stretch film & EPE foam, and confirm quantities.', followupOwner:'Vikram',
      requirement:'Get appointment to obtain specs of stretch film & EPE foam, and confirm quantities.',
      activities:[{date:today, by:'Vikram', text:'Logged lead. Need to fix appointment tomorrow to get specs of stretch film and EPE foam, and get quantity. Vikram to study the company.'}]},
 
     {id:'l2', company:'OCS', category:'Industry', products:['Stretch film','EPE foam','Air bubble sheet'],
-     stage:'appointment', city:'', contact:'', followup:addDays(1),
+     stage:'new', city:'', contact:'', followup:addDays(1),
      followupTask:'Call to capture requirement for stretch film, EPE foam, air bubble sheet.', followupOwner:'',
      requirement:'Will share full requirement for stretch film, EPE foam and air bubble sheet tomorrow at 10 AM.',
      activities:[{date:today, by:'Team', text:'Call scheduled tomorrow 10 AM to get requirement for stretch film, EPE and air bubble sheet.'}]},
@@ -1091,34 +1787,34 @@ function seedData(){
      activities:[{date:today, by:'Vikram', text:'To send email requesting an appointment.'}]},
 
     {id:'l4', company:'Turbo Engg', category:'Air valve manufacturer', products:['Air bubble sheet'],
-     stage:'quoted', city:'', contact:'', followup:addDays(3),
-     followupTask:'Confirm monthly order quantity (15ΓÇô20 nos).', followupOwner:'',
-     requirement:'Air bubble sheet ΓÇö 15 to 20 nos per month. Payment terms 30 days. Price Γé╣1,550/- + tax.',
-     activities:[{date:today, by:'Team', text:'Quoted Γé╣1,550/- + tax per unit, 30-day payment terms. Awaiting confirmation on monthly order of 15ΓÇô20 nos.'}]},
+     stage:'sample', city:'', contact:'', followup:addDays(3),
+     followupTask:'Confirm monthly order quantity (15–20 nos).', followupOwner:'',
+     requirement:'Air bubble sheet — 15 to 20 nos per month. Payment terms 30 days. Price ₹1,550/- + tax.',
+     activities:[{date:today, by:'Team', text:'Quoted ₹1,550/- + tax per unit, 30-day payment terms. Awaiting confirmation on monthly order of 15–20 nos.'}]},
 
     {id:'l5', company:'Schuf Speciality Valves Ind Pvt Ltd', category:'Valve manufacturer', products:[],
      stage:'new', city:'', contact:'', followup:'',
      followupTask:'', followupOwner:'',
-     requirement:'Requirement not yet captured ΓÇö need to get in touch first.',
+     requirement:'Requirement not yet captured — need to get in touch first.',
      activities:[{date:today, by:'Team', text:'Have to get appointment by call or mail.'}]},
 
     {id:'l6', company:'Theni Guru Krishna', category:'Fabric roll', products:['Fabric roll'],
      stage:'sample', city:'Theni', contact:'', followup:addDays(2),
      followupTask:'Follow up on sample feedback (machine grade check).', followupOwner:'',
-     requirement:'Machine-grade sample needed for their checking. Volume: 400ΓÇô500 kg.',
-     activities:[{date:today, by:'Team', text:'Sending machine grade sample for checking. Quantity discussed: 400ΓÇô500 kg.'}]},
+     requirement:'Machine-grade sample needed for their checking. Volume: 400–500 kg.',
+     activities:[{date:today, by:'Team', text:'Sending machine grade sample for checking. Quantity discussed: 400–500 kg.'}]},
 
     {id:'l7', company:'Circor', category:'Valve manufacturer', products:[],
      stage:'new', city:'', contact:'04212321600', followup:addDays(2),
      followupTask:'Get appointment.', followupOwner:'Giri',
-     requirement:'Requirement not yet captured ΓÇö appointment pending.',
+     requirement:'Requirement not yet captured — appointment pending.',
      activities:[{date:today, by:'Giri', text:'Giri to get appointment. Contact number on file: 04212321600.'}]},
 
     {id:'l8', company:'Ingrande Furn', category:'Furniture', products:['EPE foam sheet'],
-     stage:'quoted', city:'', contact:'', followup:addDays(3),
+     stage:'sample', city:'', contact:'', followup:addDays(3),
      followupTask:'Confirm order after quote.', followupOwner:'',
-     requirement:'EPE waste collection + 8mm foam sheet. Size 1.4w ├ù 8mm thick ├ù 50m L. Price: Γé╣4.60/unit ΓåÆ Γé╣2,576 total.',
-     activities:[{date:today, by:'Team', text:'Priced 8mm foam sheet (1.4w x 8mm x 50m) at Γé╣4.60 ΓåÆ total Γé╣2,576. Also handling their EPE waste collection.'}]},
+     requirement:'EPE waste collection + 8mm foam sheet. Size 1.4w × 8mm thick × 50m L. Price: ₹4.60/unit → ₹2,576 total.',
+     activities:[{date:today, by:'Team', text:'Priced 8mm foam sheet (1.4w x 8mm x 50m) at ₹4.60 → total ₹2,576. Also handling their EPE waste collection.'}]},
   ];
 }
 
@@ -1126,20 +1822,36 @@ let leads = [];
 let currentView = 'board';
 let activeLeadId = null;
 
+function isLocalHost(){
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
 async function loadData(){
   try{
     const res = await window.storage.get(STORAGE_KEY, false);
     if(res && res.value){
       leads = JSON.parse(res.value);
     } else {
-      leads = seedData();
+      leads = isLocalHost() ? seedData() : [];
       await saveData();
     }
   }catch(e){
-    leads = seedData();
+    leads = isLocalHost() ? seedData() : [];
     try{ await saveData(); }catch(e2){}
   }
+  migrateRemovedStages();
   renderAll();
+}
+function migrateRemovedStages(){
+  // "Appointment Set" and "Quotation Sent" were removed as stages. Any lead still
+  // carrying those old ids (from before this change) gets moved forward so it
+  // doesn't silently vanish from the board — appointment-stage leads fold back
+  // into New Lead, quoted-stage leads fold into the merged Sample/Quote Sent stage.
+  let changed = false;
+  leads.forEach(l=>{
+    if(l.stage === 'appointment'){ l.stage = 'new'; changed = true; }
+    if(l.stage === 'quoted'){ l.stage = 'sample'; changed = true; }
+  });
+  if(changed) saveData();
 }
 async function saveData(){
   try{
@@ -1153,13 +1865,20 @@ function followupClass(dateStr){
   if(dateStr === todayStr() || dateStr === addDays(1)) return 'fu-today';
   return 'fu-soon';
 }
+function friendlyDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekday = d.toLocaleDateString('en-US', {weekday:'long'});
+  const day = d.getDate();
+  const month = d.toLocaleDateString('en-US', {month:'short'});
+  return `${weekday}, ${day} ${month}`;
+}
 function followupLabel(dateStr){
   if(!dateStr) return 'No date';
   const t = todayStr();
-  if(dateStr < t) return 'Overdue ┬╖ ' + dateStr;
+  if(dateStr < t) return 'Overdue · ' + friendlyDate(dateStr);
   if(dateStr === t) return 'Today';
   if(dateStr === addDays(1)) return 'Tomorrow';
-  return dateStr;
+  return friendlyDate(dateStr);
 }
 
 function renderAll(){
@@ -1180,45 +1899,48 @@ function renderStats(){
 
 function cardHTML(l){
   return `
-    <div class="card ${l.stage==='lost'?'lost':''}" draggable="true" data-id="${l.id}" style="border-left:4px solid ${STAGE_COLORS[l.stage]||'#ccc'};">
-      <div class="card-top">
-        <div>
-          <div class="card-company">${l.company}</div>
-          <div class="card-cat">${l.category||''}</div>
+    <div class="card ${l.stage==='lost'?'lost':''} stage-${l.stage}" draggable="true" data-id="${l.id}">
+      <div class="card-color-zone">
+        <div class="card-top">
+          <div>
+            <div class="card-company">${l.company}</div>
+            <div class="card-cat">${l.category||''}</div>
+          </div>
+        </div>
+        <div class="card-tags-note">
+          ${l.products.length? `<div class="tags">${l.products.map(p=>`<span class="tag">${p}</span>`).join('')}</div>` : ''}
+          ${l.requirement? `<div class="card-note">${l.requirement}</div>` : ''}
         </div>
       </div>
-      ${l.products.length? `<div class="tags">${l.products.map(p=>`<span class="tag">${p}</span>`).join('')}</div>` : ''}
-      ${l.requirement? `<div class="card-note">${l.requirement}</div>` : ''}
-      <div class="card-bottom">
-        <div class="avatar" title="${l.city||'No city set'}">${initials(l.city)}</div>
-        <div class="followup-badge ${followupClass(l.followup)}">${followupLabel(l.followup)}</div>
+      <div class="card-footer-zone">
+        <div class="card-bottom">
+          <div class="card-followup-hint">${l.followupOwner ? `<b>${l.followupOwner}</b> · ` : ''}${l.followupTask || ''}</div>
+          <div class="followup-badge ${followupClass(l.followup)}">${followupLabel(l.followup)}</div>
+        </div>
+        <select class="stage-quick" data-id="${l.id}" aria-label="Move stage">
+          ${STAGES.map(s=>`<option value="${s.id}" ${s.id===l.stage?'selected':''}>${s.name}</option>`).join('')}
+          <option value="lost" ${l.stage==='lost'?'selected':''}>Lost</option>
+        </select>
       </div>
-      ${(l.followupTask || l.followupOwner) ? `<div class="card-followup-hint">${l.followupOwner ? `<b>${l.followupOwner}</b> ┬╖ ` : ''}${l.followupTask || 'Follow up'}</div>` : ''}
-      ${l.attentionNeeded ? `<div class="attention-flag">ΓÜá Attention needed</div>` : ''}
-      <select class="stage-quick" data-id="${l.id}" aria-label="Move stage">
-        ${STAGES.map(s=>`<option value="${s.id}" ${s.id===l.stage?'selected':''}>Move to: ${s.name}</option>`).join('')}
-        <option value="lost" ${l.stage==='lost'?'selected':''}>Move to: Lost</option>
-      </select>
     </div>`;
 }
 
 function renderBoard(){
   const board = document.getElementById('board');
   board.innerHTML = '';
-  const cols = showLost ? [...STAGES, {id:'lost', name:'Lost / On Hold'}] : STAGES;
+  const cols = STAGES;
   cols.forEach((s,idx)=>{
-    const items = leads.filter(l=>l.stage===s.id);
+    const items = leads.filter(l=>l.stage===s.id).filter(matchesSearch);
     const col = document.createElement('div');
     col.className = 'col';
     col.innerHTML = `
-      <div class="col-head">
+      <div class="col-head stage-${s.id}">
         <span class="idx mono">${String(idx+1).padStart(2,'0')}</span>
         <span class="name">${s.name}</span>
         <span class="count mono">${items.length}</span>
       </div>
       <div class="col-body" data-stage="${s.id}">
         ${items.map(cardHTML).join('')}
-        ${s.id==='new' ? `<div class="add-lead-inline" data-add="1">+ Add lead</div>` : ''}
       </div>`;
     board.appendChild(col);
   });
@@ -1250,7 +1972,6 @@ function renderBoard(){
       if(lead){ lead.stage = stage; saveData(); renderAll(); }
     });
   });
-  document.querySelectorAll('[data-add]').forEach(b=> b.addEventListener('click', openModal));
 
   renderMobileBoard();
 }
@@ -1260,7 +1981,7 @@ function renderMobileBoard(){
   const listEl = document.getElementById('mobileList');
   const tabStages = [...STAGES, {id:'lost', name:'Lost'}];
   tabsEl.innerHTML = tabStages.map(s=>{
-    const count = leads.filter(l=>l.stage===s.id).length;
+    const count = leads.filter(l=>l.stage===s.id).filter(matchesSearch).length;
     return `<button class="mtab ${mobileActiveStage===s.id?'active':''}" data-stage="${s.id}">${s.name}<span class="mtab-count">${count}</span></button>`;
   }).join('');
   tabsEl.querySelectorAll('.mtab').forEach(btn=>{
@@ -1271,8 +1992,8 @@ function renderMobileBoard(){
     });
   });
 
-  const items = leads.filter(l=>l.stage===mobileActiveStage);
-  listEl.innerHTML = items.length ? items.map(cardHTML).join('') : `<div class="mobile-empty">No leads in this stage yet.</div>`;
+  const items = leads.filter(l=>l.stage===mobileActiveStage).filter(matchesSearch);
+  listEl.innerHTML = items.length ? items.map(cardHTML).join('') : `<div class="mobile-empty">${searchQuery ? 'No leads match your search.' : 'No leads in this stage yet.'}</div>`;
   listEl.querySelectorAll('.card').forEach(c=>{
     c.addEventListener('click', ()=> openPanel(c.dataset.id));
   });
@@ -1293,20 +2014,48 @@ const FOLLOWUP_SECTIONS = {
   later:   {sectionId:'fvSectionLater',   label:'Later'},
   none:    {sectionId:'fvSectionNone',    label:'No follow-up set'},
 };
+let followupPersonFilter = 'all'; // 'all' | a name from PEOPLE | 'unassigned'
 function renderFollowups(){
+  const openLeads = leads.filter(l=>l.stage!=='won' && l.stage!=='lost').filter(matchesSearch);
+
+  // person filter chips: All + each known person + Unassigned, each with a live count
+  const chipDefs = [
+    {id:'all', label:'All'},
+    ...PEOPLE.map(p=>({id:p, label:p})),
+    {id:'unassigned', label:'Unassigned'},
+  ];
+  const chipsEl = document.getElementById('fuPersonFilter');
+  chipsEl.innerHTML = chipDefs.map(c=>{
+    const count = c.id==='all' ? openLeads.length
+      : c.id==='unassigned' ? openLeads.filter(l=>!l.followupOwner).length
+      : openLeads.filter(l=>l.followupOwner===c.id).length;
+    return `<button type="button" class="fu-person-chip ${followupPersonFilter===c.id?'active':''}" data-person="${c.id}">${c.label}<span class="fu-person-count">${count}</span></button>`;
+  }).join('');
+  chipsEl.querySelectorAll('.fu-person-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ followupPersonFilter = btn.dataset.person; renderFollowups(); });
+  });
+
+  const matchesPerson = l => followupPersonFilter==='all' ? true
+    : followupPersonFilter==='unassigned' ? !l.followupOwner
+    : l.followupOwner === followupPersonFilter;
+
   const overdue = [], today = [], later = [], none = [];
-  leads.filter(l=>l.stage!=='won' && l.stage!=='lost').forEach(l=>{
+  openLeads.filter(matchesPerson).forEach(l=>{
     if(!l.followup) none.push(l);
-    else if(l.followup < todayStr()) overdue.push(l);      // date string earlier than today ΓåÆ overdue
+    else if(l.followup < todayStr()) overdue.push(l);      // date string earlier than today → overdue
     else if(l.followup === todayStr() || l.followup === addDays(1)) today.push(l); // due today or tomorrow
     else later.push(l);                                     // due later than tomorrow
   });
+  // sort each bucket by follow-up date, soonest first
+  const byDate = (a,b) => (a.followup||'').localeCompare(b.followup||'');
+  overdue.sort(byDate); today.sort(byDate); later.sort(byDate);
+
   const rowHTML = l => {
     const taskLine = (l.followupTask || l.followupOwner)
       ? `${l.followupOwner ? `<b>${l.followupOwner}</b>: ` : ''}${l.followupTask || 'Follow up'}`
       : (l.activities[l.activities.length-1]?.text || '');
     return `
-    <div class="fv-row" data-id="${l.id}">
+    <div class="fv-row stage-${l.stage}" data-id="${l.id}">
       <div class="fv-company">${l.company}</div>
       <div class="fv-stage">${STAGES.find(s=>s.id===l.stage).name}</div>
       <div class="fv-note">${taskLine}</div>
@@ -1315,8 +2064,8 @@ function renderFollowups(){
   };
   document.getElementById('fvOverdue').innerHTML = overdue.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">Nothing overdue.</div>';
   document.getElementById('fvToday').innerHTML = today.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">Nothing due today or tomorrow.</div>';
-  document.getElementById('fvLater').innerHTML = later.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">ΓÇö</div>';
-  document.getElementById('fvNone').innerHTML = none.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">ΓÇö</div>';
+  document.getElementById('fvLater').innerHTML = later.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">—</div>';
+  document.getElementById('fvNone').innerHTML = none.map(rowHTML).join('') || '<div style="color:var(--muted); font-size:12px;">—</div>';
   document.querySelectorAll('.fv-row').forEach(r=> r.addEventListener('click', ()=> openPanel(r.dataset.id)));
 
   // show only the matching section when a filter is active; otherwise show the full stacked overview
@@ -1327,45 +2076,79 @@ function renderFollowups(){
 }
 
 let tableFilter = null; // null = show all, or a stage id like 'won'
+function alRowHTML(l){
+  const lastAct = l.activities[l.activities.length-1];
+  return `
+    <div class="al-row" data-id="${l.id}">
+      <div class="al-company">${l.company}</div>
+      <div class="al-cell">${l.category||'—'}</div>
+      <div class="al-cell">${l.products.join(', ')||'—'}</div>
+      <div class="al-cell">${STAGES.find(s=>s.id===l.stage)?.name || l.stage}</div>
+      <div class="al-cell">${l.city||'—'}</div>
+      <div class="al-cell mono">${followupLabel(l.followup)}</div>
+      <div class="al-cell al-lastact">${lastAct ? lastAct.date+(lastAct.time?' '+lastAct.time:'')+' — '+lastAct.text : '—'}</div>
+    </div>`;
+}
 function renderTable(){
   const tbody = document.getElementById('tableBody');
-  const rows = tableFilter ? leads.filter(l=>l.stage===tableFilter) : leads;
-  tbody.innerHTML = rows.map(l=>{
-    const lastAct = l.activities[l.activities.length-1];
-    return `<tr data-id="${l.id}">
-      <td><strong>${l.company}</strong></td>
-      <td>${l.category||''}</td>
-      <td>${l.products.join(', ')}</td>
-      <td>${STAGES.find(s=>s.id===l.stage)?.name || l.stage}</td>
-      <td>${l.city||'ΓÇö'}</td>
-      <td class="mono">${followupLabel(l.followup)}</td>
-      <td>${lastAct ? lastAct.date+(lastAct.time?' '+lastAct.time:'')+' ΓÇö '+lastAct.text : ''}</td>
-    </tr>`;
-  }).join('');
-  document.querySelectorAll('#tableBody tr').forEach(r=> r.addEventListener('click', ()=> openPanel(r.dataset.id)));
+  const rows = (tableFilter ? leads.filter(l=>l.stage===tableFilter) : leads)
+    .filter(l=>l.stage!=='lost')
+    .filter(matchesSearch);
+  tbody.innerHTML = rows.map(alRowHTML).join('') || '<div style="color:var(--muted); font-size:12px; padding:16px 0;">No leads to show.</div>';
+  document.querySelectorAll('#tableBody .al-row').forEach(r=> r.addEventListener('click', ()=> openPanel(r.dataset.id)));
+}
+function renderLostLeads(){
+  const lbody = document.getElementById('lostBody');
+  const rows = leads.filter(l=>l.stage==='lost').filter(matchesSearch);
+  lbody.innerHTML = rows.map(alRowHTML).join('') || '<div style="color:var(--muted); font-size:12px; padding:16px 0;">No lost leads.</div>';
+  document.querySelectorAll('#lostBody .al-row').forEach(r=> r.addEventListener('click', ()=> openPanel(r.dataset.id)));
 }
 
-/* ---------- Panel ---------- */
+/* ---------- Lead page ---------- */
+let previousView = 'board';
+const STAGE_BADGE_COLORS = {
+  new:'#E3F0FC', requirement:'#EAE3FB', sample:'#DFF5EA',
+  negotiation:'#FCE1E8', won:'#DCF4DE', lost:'#EDEDED'
+};
+function colorStageBadge(stageId){
+  const sel = document.getElementById('pStage');
+  sel.style.background = STAGE_BADGE_COLORS[stageId] || '#EDEDED';
+}
 function openPanel(id){
+  if(currentView !== 'client') previousView = currentView;
   activeLeadId = id;
   const l = leads.find(x=>x.id===id);
   if(!l) return;
   document.getElementById('pCompany').textContent = l.company;
-  document.getElementById('pCat').textContent = [l.category, l.products.join(', ')].filter(Boolean).join(' ┬╖ ');
+  document.getElementById('pCat').textContent = [l.category, l.products.join(', ')].filter(Boolean).join(' · ');
   const stageSel = document.getElementById('pStage');
   stageSel.innerHTML = STAGES.map(s=>`<option value="${s.id}" ${s.id===l.stage?'selected':''}>${s.name}</option>`).join('') + `<option value="lost" ${l.stage==='lost'?'selected':''}>Lost</option>`;
+  colorStageBadge(l.stage);
   document.getElementById('pCity').value = l.city || '';
+  pSelectedCategory = l.category || '';
+  document.getElementById('pCatEdit').value = l.category || '';
   document.getElementById('pFollowup').value = l.followup || '';
   document.getElementById('pFollowupTask').value = l.followupTask || '';
   refreshPanelPerson();
   document.getElementById('pRequirement').value = l.requirement || '';
   document.getElementById('pContact').value = l.contact || '';
   const banner = document.getElementById('pAttentionBanner');
+  const followupCard = document.getElementById('pFollowupCard');
+  const followupTitle = document.getElementById('pFollowupCardTitle');
+  const followupDateWrap = document.getElementById('pFollowupWrap');
   if(l.attentionNeeded){
     banner.style.display = 'flex';
-    banner.innerHTML = `ΓÜá∩╕Å No follow-up was logged for ${l.lastAttentionFlagged || l.followup} ΓÇö this needs attention.`;
+    banner.innerHTML = `⚠️ No follow-up was logged for ${l.lastAttentionFlagged || l.followup} — this needs attention.`;
+    followupCard.classList.add('needs-attention');
+    followupTitle.classList.add('needs-attention');
+    followupTitle.textContent = '⚠ Follow-up needed';
+    followupDateWrap.classList.add('attention-date');
   } else {
     banner.style.display = 'none';
+    followupCard.classList.remove('needs-attention');
+    followupTitle.classList.remove('needs-attention');
+    followupTitle.textContent = 'Follow-up';
+    followupDateWrap.classList.remove('attention-date');
   }
   const qaCall = document.getElementById('qaCallBtn');
   const phoneMatch = (l.contact || '').match(/[\d+][\d\s-]{6,}/);
@@ -1376,29 +2159,27 @@ function openPanel(id){
     qaCall.style.display = 'none';
     qaCall.href = '#';
   }
-  document.getElementById('pProductNew').value = '';
-  document.getElementById('pProductAddRow').style.display = 'none';
-  refreshPanelProducts();
   document.getElementById('pTimeline').innerHTML = l.activities.slice().reverse().map(a=>`
     <div class="tl-item">
-      <span class="tl-date">${a.date}${a.time ? ' ┬╖ ' + a.time : ''}</span><span class="tl-by">${a.by}</span>
+      <span class="tl-date">${a.date}${a.time ? ' · ' + a.time : ''}</span><span class="tl-by">${a.by}</span>
       <div class="tl-text">${a.text}</div>
     </div>`).join('') || '<div style="font-size:12px;color:var(--muted);">No activity logged yet.</div>';
+  refreshPanelProducts();
   document.getElementById('pNewActivity').value = '';
-  document.getElementById('overlay').style.display = 'block';
-  document.getElementById('panel').classList.add('open');
+  switchView('client');
+  const panelBody = document.querySelector('#panel .panel-body');
+  if(panelBody) panelBody.scrollTop = 0;
 }
 function closePanel(){
-  document.getElementById('overlay').style.display = 'none';
-  document.getElementById('panel').classList.remove('open');
+  switchView(previousView);
   activeLeadId = null;
 }
 document.getElementById('closePanel').addEventListener('click', closePanel);
-document.getElementById('overlay').addEventListener('click', closePanel);
 
 document.getElementById('pStage').addEventListener('change', e=>{
   const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
   l.stage = e.target.value; saveData(); renderAll();
+  colorStageBadge(e.target.value);
 });
 document.getElementById('pCity').addEventListener('change', e=>{
   const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
@@ -1410,41 +2191,22 @@ function refreshPanelProducts(){
     const idx = l.products.indexOf(p);
     if(idx>-1) l.products.splice(idx,1); else l.products.push(p);
     saveData(); refreshPanelProducts(); renderAll();
-  }, 'No products yet ΓÇö add one below.');
+  }, 'No products yet — add some from Settings.');
 }
-document.getElementById('pProductAddTrigger').addEventListener('click', ()=>{
-  const row = document.getElementById('pProductAddRow');
-  const opening = row.style.display === 'none';
-  row.style.display = opening ? 'flex' : 'none';
-  if(opening) document.getElementById('pProductNew').focus();
-});
-document.getElementById('pProductAddBtn').addEventListener('click', ()=>{
-  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
-  const input = document.getElementById('pProductNew');
-  const p = addProduct(input.value);
-  if(!p) return;
-  if(!l.products.includes(p)) l.products.push(p);
-  input.value='';
-  document.getElementById('pProductAddRow').style.display = 'none';
-  saveData(); refreshPanelProducts(); renderAll();
-});
-document.getElementById('pProductNew').addEventListener('keydown', e=>{
-  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('pProductAddBtn').click(); }
-});
 function refreshPanelPerson(){
   const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
   const selected = l.followupOwner ? [l.followupOwner] : [];
   renderChipPicker('pPersonPicker', PEOPLE, selected, (p)=>{
     l.followupOwner = (l.followupOwner === p) ? '' : p; // click again to unassign
     clearAttention(l);
-    saveData(); refreshPanelPerson(); renderAll();
+    saveData(); renderAll(); openPanel(activeLeadId);
   }, 'No one to assign.');
 }
 document.getElementById('pFollowupTaskBtn').addEventListener('click', ()=>{
   const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
   l.followupTask = document.getElementById('pFollowupTask').value.trim();
   clearAttention(l);
-  saveData(); renderAll();
+  saveData(); renderAll(); openPanel(activeLeadId);
 });
 document.getElementById('pRequirementBtn').addEventListener('click', ()=>{
   const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
@@ -1515,7 +2277,7 @@ function attachDatePicker(wrapId, inputId){
     const popW = popover.offsetWidth;
     const spaceBelow = window.innerHeight - rect.bottom;
     const top = (spaceBelow < popH + 10 && rect.top > popH + 10)
-      ? rect.top - popH - 6   // not enough room below ΓåÆ flip above the field
+      ? rect.top - popH - 6   // not enough room below → flip above the field
       : rect.bottom + 6;
     let left = rect.left;
     const maxLeft = window.innerWidth - popW - 10;
@@ -1546,11 +2308,21 @@ function attachDatePicker(wrapId, inputId){
       popover.style.display = 'none';
     }
   });
-  // scrolling (e.g. the panel body) would leave a fixed-position popover behind ΓÇö just close it
+  // scrolling (e.g. the panel body) would leave a fixed-position popover behind — just close it
   window.addEventListener('scroll', ()=>{ popover.style.display = 'none'; }, true);
   window.addEventListener('resize', ()=>{ popover.style.display = 'none'; });
 }
 attachDatePicker('pFollowupWrap', 'pFollowup');
+setupSearchableSelect('nCat', 'nCatDropdown', ()=>CATEGORIES, ()=>nSelectedCategory, (val)=>{ nSelectedCategory = val; });
+setupSearchableSelect('pCatEdit', 'pCatDropdown', ()=>CATEGORIES, ()=>pSelectedCategory, (val)=>{
+  const l = leads.find(x=>x.id===activeLeadId); if(!l) return;
+  if(l.category === val) return; // no change, avoid unnecessary re-render/save
+  l.category = val;
+  pSelectedCategory = val;
+  saveData();
+  renderAll();
+  document.getElementById('pCat').textContent = [l.category, l.products.join(', ')].filter(Boolean).join(' · ');
+});
 
 document.getElementById('addActivityBtn').addEventListener('click', ()=>{
   const text = document.getElementById('pNewActivity').value.trim();
@@ -1583,9 +2355,8 @@ document.getElementById('deleteLead').addEventListener('click', ()=>{
 function openModal(){
   document.getElementById('nCompany').value='';
   document.getElementById('nCat').value='';
+  nSelectedCategory = '';
   document.getElementById('nCity').value='';
-  document.getElementById('nProductNew').value='';
-  document.getElementById('nProductAddRow').style.display = 'none';
   document.getElementById('nReq').value='';
   document.getElementById('nFollowup').value='';
   document.getElementById('nFollowupTask').value='';
@@ -1601,26 +2372,8 @@ function refreshModalProducts(){
     const idx = nSelectedProducts.indexOf(p);
     if(idx>-1) nSelectedProducts.splice(idx,1); else nSelectedProducts.push(p);
     refreshModalProducts();
-  }, 'No products yet ΓÇö add one below.');
+  }, 'No products yet — add some from Settings.');
 }
-document.getElementById('nProductAddTrigger').addEventListener('click', ()=>{
-  const row = document.getElementById('nProductAddRow');
-  const opening = row.style.display === 'none';
-  row.style.display = opening ? 'flex' : 'none';
-  if(opening) document.getElementById('nProductNew').focus();
-});
-document.getElementById('nProductAddBtn').addEventListener('click', ()=>{
-  const input = document.getElementById('nProductNew');
-  const p = addProduct(input.value);
-  if(!p) return;
-  if(!nSelectedProducts.includes(p)) nSelectedProducts.push(p);
-  input.value='';
-  document.getElementById('nProductAddRow').style.display = 'none';
-  refreshModalProducts();
-});
-document.getElementById('nProductNew').addEventListener('keydown', e=>{
-  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('nProductAddBtn').click(); }
-});
 function refreshModalPerson(){
   renderChipPicker('nPersonPicker', PEOPLE, nSelectedPerson, (p)=>{
     nSelectedPerson = (nSelectedPerson[0] === p) ? [] : [p]; // single-select
@@ -1635,7 +2388,7 @@ document.getElementById('saveLeadBtn').addEventListener('click', ()=>{
   const l = {
     id: 'l'+Date.now(),
     company,
-    category: document.getElementById('nCat').value.trim(),
+    category: nSelectedCategory,
     products: nSelectedProducts.slice(),
     stage: 'new',
     city: document.getElementById('nCity').value.trim(),
@@ -1663,6 +2416,13 @@ function switchView(view){
   document.getElementById('mobileFab').style.display = currentView==='board' ? '' : 'none';
   document.getElementById('followupView').style.display = currentView==='followup' ? 'block' : 'none';
   document.getElementById('tableView').style.display = currentView==='table' ? 'block' : 'none';
+  document.getElementById('settingsView').style.display = currentView==='settings' ? 'block' : 'none';
+  document.getElementById('reportsView').style.display = currentView==='reports' ? 'block' : 'none';
+  document.getElementById('lostView').style.display = currentView==='lost' ? 'block' : 'none';
+  document.getElementById('panel').classList.toggle('open', currentView==='client');
+  if(currentView==='settings') renderSettings();
+  if(currentView==='reports') renderReports();
+  if(currentView==='lost') renderLostLeads();
 }
 document.querySelectorAll('[data-view]').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -1699,24 +2459,66 @@ document.getElementById('statOverdueBtn').addEventListener('click', ()=>{
 
 document.getElementById('mobileFab').addEventListener('click', openModal);
 
-function toggleShowLost(){
-  showLost = !showLost;
-  document.getElementById('showLostBtn').classList.toggle('active-toggle', showLost);
-  document.getElementById('drawerShowLostLabel').textContent = showLost ? 'Hide Lost' : 'Show Lost';
-  document.getElementById('drawerShowLostBtn').classList.toggle('active', showLost);
-  renderBoard();
+function handleSearchInput(value){
+  searchQuery = value.trim();
+  document.getElementById('searchInput').value = value;
+  document.getElementById('mobileSearchInput').value = value;
+  document.getElementById('desktopSearchBar').classList.toggle('has-text', !!searchQuery);
+  document.getElementById('mobileSearchRow').classList.toggle('has-text', !!searchQuery);
+  renderBoard(); renderFollowups(); renderTable();
 }
-document.getElementById('showLostBtn').addEventListener('click', toggleShowLost);
-document.getElementById('drawerShowLostBtn').addEventListener('click', ()=>{ toggleShowLost(); closeDrawer(); });
+document.getElementById('searchInput').addEventListener('input', e=> handleSearchInput(e.target.value));
+document.getElementById('mobileSearchInput').addEventListener('input', e=> handleSearchInput(e.target.value));
+document.getElementById('searchClear').addEventListener('click', ()=> handleSearchInput(''));
+document.getElementById('mobileSearchClear').addEventListener('click', ()=> handleSearchInput(''));
 
-async function resetDemoData(){
-  if(!confirm('Reset to the original demo leads? This clears any edits.')) return;
-  leads = seedData();
-  await saveData();
-  renderAll();
+document.getElementById('sidebarSettingsBtn').addEventListener('click', ()=> switchView('settings'));
+document.getElementById('sidebarReportsBtn').addEventListener('click', ()=> switchView('reports'));
+document.getElementById('drawerReportsBtn').addEventListener('click', ()=>{ switchView('reports'); closeDrawer(); });
+document.querySelectorAll('.report-download-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> downloadReportPDF(btn.dataset.report));
+});
+
+function setSidebarCollapsed(collapsed){
+  document.getElementById('sidebar').classList.toggle('collapsed', collapsed);
+  document.getElementById('appShell').classList.toggle('sidebar-is-collapsed', collapsed);
+  document.getElementById('sidebarCollapseBtn').setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
 }
-document.getElementById('resetBtn').addEventListener('click', resetDemoData);
-document.getElementById('drawerResetBtn').addEventListener('click', ()=>{ resetDemoData(); closeDrawer(); });
+document.getElementById('sidebarCollapseBtn').addEventListener('click', ()=>{
+  setSidebarCollapsed(!document.getElementById('sidebar').classList.contains('collapsed'));
+});
+document.getElementById('drawerSettingsBtn').addEventListener('click', ()=>{ switchView('settings'); closeDrawer(); });
+
+document.getElementById('settingsPersonAddBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('settingsPersonNew');
+  const p = addPerson(input.value);
+  if(!p) return;
+  input.value = '';
+  renderSettings();
+});
+document.getElementById('settingsPersonNew').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('settingsPersonAddBtn').click(); }
+});
+document.getElementById('settingsProductAddBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('settingsProductNew');
+  const p = addProduct(input.value);
+  if(!p) return;
+  input.value = '';
+  renderSettings();
+});
+document.getElementById('settingsProductNew').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('settingsProductAddBtn').click(); }
+});
+document.getElementById('settingsCategoryAddBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('settingsCategoryNew');
+  const c = addCategory(input.value);
+  if(!c) return;
+  input.value = '';
+  renderSettings();
+});
+document.getElementById('settingsCategoryNew').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('settingsCategoryAddBtn').click(); }
+});
 
 /* ---------- Mobile drawer ---------- */
 function openDrawer(){
@@ -1733,6 +2535,7 @@ document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 (async function init(){
   await loadProducts();
   await loadPeople();
+  await loadCategories();
   await loadData();
   checkFollowupsForAttention();
   renderAll();
